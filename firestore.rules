@@ -1,0 +1,74 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- helpers ----------
+    function signedIn() { return request.auth != null; }
+    function profilePath() { return /databases/$(database)/documents/users/$(request.auth.uid); }
+    function hasProfile() { return signedIn() && exists(profilePath()); }
+    function isActive() { return hasProfile() && get(profilePath()).data.active == true; }
+    function isAdmin() { return isActive() && get(profilePath()).data.role == 'admin'; }
+    function isStaff() {
+      return isActive() && (get(profilePath()).data.role == 'admin' || get(profilePath()).data.role == 'teacher');
+    }
+    function registrationOpen() {
+      return get(/databases/$(database)/documents/settings/app).data.registrationOpen == true;
+    }
+
+    // ---------- app settings (registration lock lives here) ----------
+    match /settings/{id} {
+      allow read: if true;
+      allow create, delete: if isAdmin();
+      // admin can change anything; teachers may only bump the syllabus cache version
+      allow update: if isAdmin() ||
+        (isStaff() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['syllabusVersion']));
+    }
+
+    // ---------- user profiles ----------
+    match /users/{uid} {
+      allow get: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow list: if isAdmin();
+      // Self-registration only while the admin has registration open.
+      allow create: if signedIn() && request.auth.uid == uid && registrationOpen()
+        && request.resource.data.role == 'student'
+        && request.resource.data.active == true
+        && request.resource.data.keys().hasOnly(['name', 'email', 'role', 'active', 'createdAt']);
+      allow update: if isAdmin() ||
+        (signedIn() && request.auth.uid == uid &&
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name']));
+      allow delete: if isAdmin();
+    }
+
+    match /users/{uid}/bookmarks/{id} {
+      allow read, write: if isActive() && request.auth.uid == uid;
+    }
+    match /users/{uid}/wrong/{id} {
+      allow read, write: if isActive() && request.auth.uid == uid;
+    }
+
+    // ---------- syllabus tree + question bank ----------
+    match /nodes/{id} {
+      allow read: if isActive();
+      allow write: if isStaff();
+    }
+    match /questions/{id} {
+      allow read: if isActive();
+      allow write: if isStaff();
+    }
+    match /imports/{id} {
+      allow read, write: if isStaff();
+    }
+
+    // ---------- student attempts ----------
+    match /attempts/{id} {
+      allow read: if isActive() && (resource.data.uid == request.auth.uid || isStaff());
+      allow create: if isActive() && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if isActive() && resource.data.uid == request.auth.uid;
+    }
+    match /attemptDetails/{id} {
+      allow read: if isActive() && (resource.data.uid == request.auth.uid || isStaff());
+      allow create: if isActive() && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if isActive() && resource.data.uid == request.auth.uid;
+    }
+  }
+}

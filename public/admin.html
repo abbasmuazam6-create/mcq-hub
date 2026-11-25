@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Topper Hub – Admin Console</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+  
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <!-- Tailwind CSS (Ensures all utility classes render cleanly) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            display: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Core modules: preload so the browser fetches them in parallel with HTML parse -->
+  <link rel="modulepreload" href="js/core/dom.js">
+  <link rel="modulepreload" href="js/core/cache.js">
+  <link rel="modulepreload" href="js/core/store.js">
+  <link rel="modulepreload" href="js/core/router.js">
+  <link rel="modulepreload" href="js/core/firebase.js">
+  <link rel="modulepreload" href="js/common.js">
+  <link rel="modulepreload" href="js/admin.js">
+
+  <!-- Firebase origins: start TLS handshake early -->
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+
+  <!-- Existing Styles -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+
+  <!-- Modern UI Overrides & Glassmorphism -->
+  <style>
+    :root {
+      --sidebar-w: 268px;
+      --topbar-h: 64px;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* Ambient Mesh Orbs */
+    .bg-orbs {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .orb {
+      position: absolute;
+      border-radius: 9999px;
+      filter: blur(110px);
+      opacity: 0.35;
+      transition: opacity 0.4s ease;
+    }
+    .dark .orb { opacity: 0.22; }
+    .orb-1 {
+      width: 520px;
+      height: 520px;
+      top: -140px;
+      left: -100px;
+      background: radial-gradient(circle, #6366f1 0%, transparent 70%);
+    }
+    .orb-2 {
+      width: 480px;
+      height: 480px;
+      bottom: -120px;
+      right: -80px;
+      background: radial-gradient(circle, #06b6d4 0%, transparent 70%);
+    }
+
+    /* Glass Surfaces */
+    .glass-nav {
+      background: rgba(255, 255, 255, 0.78);
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+    }
+    .dark .glass-nav {
+      background: rgba(9, 13, 24, 0.78);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .glass-sidebar {
+      background: rgba(255, 255, 255, 0.72);
+      backdrop-filter: blur(18px) saturate(160%);
+      -webkit-backdrop-filter: blur(18px) saturate(160%);
+      border-right: 1px solid rgba(226, 232, 240, 0.8);
+    }
+    .dark .glass-sidebar {
+      background: rgba(11, 16, 29, 0.72);
+      border-right: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    /* Navigation Links */
+    #nav a {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.625rem 0.875rem;
+      border-radius: 0.75rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #475569;
+      transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+    }
+    .dark #nav a {
+      color: #94a3b8;
+    }
+    #nav a:hover {
+      background: rgba(99, 102, 241, 0.08);
+      color: #4f46e5;
+      transform: translateX(2px);
+    }
+    .dark #nav a:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: #f8fafc;
+    }
+    #nav a.active,
+    #nav a[aria-current="page"] {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.14), rgba(79, 70, 229, 0.06));
+      color: #4f46e5;
+      font-weight: 600;
+      box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.22);
+    }
+    .dark #nav a.active,
+    .dark #nav a[aria-current="page"] {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.22), rgba(99, 102, 241, 0.08));
+      color: #a5b4fc;
+      box-shadow: inset 0 0 0 1px rgba(129, 140, 248, 0.25);
+    }
+
+    /* Quick Jump Links */
+    .quick-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.45rem 0.75rem;
+      border-radius: 0.5rem;
+      font-size: 0.8125rem;
+      color: #64748b;
+      transition: all 0.15s ease;
+    }
+    .dark .quick-link { color: #64748b; }
+    .quick-link:hover {
+      color: #4f46e5;
+      background: rgba(99, 102, 241, 0.06);
+    }
+    .dark .quick-link:hover {
+      color: #cbd5e1;
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .quick-link i {
+      transition: transform 0.15s ease;
+    }
+    .quick-link:hover i {
+      transform: translateX(2px);
+    }
+
+    /* Dual Ring Modern Spinner */
+    .modern-loader {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 3px solid rgba(99, 102, 241, 0.15);
+      border-top-color: #6366f1;
+      animation: spin 0.8s cubic-bezier(0.5, 0.1, 0.5, 0.9) infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Native Dialog Polish */
+    dialog#dlg {
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 1.25rem;
+      padding: 0;
+      background: #ffffff;
+      color: #0f172a;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+      max-width: 92vw;
+    }
+    .dark dialog#dlg {
+      background: #0f172a;
+      color: #f1f5f9;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+    }
+    dialog#dlg::backdrop {
+      background: rgba(2, 6, 23, 0.65);
+      backdrop-filter: blur(6px);
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.3);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.5); }
+
+    /* Responsive Sidebar Handling */
+    @media (max-width: 1023px) {
+      .admin-sidebar {
+        position: fixed;
+        top: var(--topbar-h);
+        bottom: 0;
+        left: 0;
+        z-index: 35;
+        transform: translateX(-100%);
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .admin-sidebar.open {
+        transform: translateX(0);
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-[#070b14] dark:text-slate-100 min-h-screen selection:bg-indigo-500 selection:text-white antialiased">
+
+  <!-- Ambient Orbs -->
+  <div class="bg-orbs" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+  </div>
+
+  <!-- ==================== TOPBAR ==================== -->
+  <header class="topbar glass-nav sticky top-0 z-40 h-16">
+    <div class="topbar-inner h-full max-w-[1600px] mx-auto px-4 sm:px-6 flex items-center justify-between gap-4">
+      
+      <!-- Left: Sidebar Toggle + Brand -->
+      <div class="topbar-left flex items-center gap-3">
+        <button
+          id="adminSidebarToggle"
+          type="button"
+          aria-label="Toggle admin sidebar"
+          class="icon-btn w-9 h-9 rounded-xl flex items-center justify-center border border-slate-200/80 dark:border-white/10 bg-white/60 dark:bg-white/[0.04] hover:bg-indigo-50 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 transition-all active:scale-95"
+        >
+          <i class="fa-solid fa-bars text-sm"></i>
+        </button>
+
+        <a href="#/dash" class="brand-link flex items-center gap-2.5 group">
+          <div class="brand-logo w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 p-0.5 shadow-md shadow-indigo-500/20 flex items-center justify-center overflow-hidden">
+            <div class="w-full h-full rounded-[10px] bg-white dark:bg-[#0b101d] flex items-center justify-center">
+              <img
+                src="assets/images/logo.png"
+                alt="Topper Hub Logo"
+                class="brand-logo-img w-6 h-6 object-contain"
+                onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');"
+              />
+              <i class="hidden fa-solid fa-graduation-cap text-indigo-500 dark:text-indigo-400 text-base"></i>
+            </div>
+          </div>
+          <div class="flex flex-col">
+            <div class="brand font-display font-extrabold tracking-tight text-base leading-none text-slate-900 dark:text-white">
+              Topper <span class="bg-gradient-to-r from-indigo-500 to-cyan-400 bg-clip-text text-transparent">Admin</span>
+            </div>
+            <span class="text-[10px] font-medium tracking-wider uppercase text-slate-400 dark:text-slate-500 mt-0.5">Control Center</span>
+          </div>
+        </a>
+      </div>
+
+      <!-- Right: User Pill + Actions -->
+      <div class="topbar-right flex items-center gap-2 sm:gap-2.5">
+        <span id="who" class="who hidden sm:inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-100 dark:bg-white/[0.05] text-slate-600 dark:text-slate-300 border border-slate-200/70 dark:border-white/10 empty:hidden"></span>
+
+        <button
+          id="clearCacheBtn"
+          type="button"
+          title="Refresh cached syllabus &amp; bank data"
+          class="btn-soft hidden md:inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium bg-indigo-50/80 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border border-indigo-200/70 dark:border-indigo-500/20 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-all active:scale-95"
+        >
+          <i class="fa-solid fa-rotate text-[11px]"></i>
+          <span>Sync Cache</span>
+        </button>
+
+        <button
+          id="themeToggle"
+          type="button"
+          aria-label="Toggle color theme"
+          class="icon-btn w-9 h-9 rounded-xl flex items-center justify-center border border-slate-200/80 dark:border-white/10 bg-white/60 dark:bg-white/[0.04] hover:bg-slate-100 dark:hover:bg-white/10 text-slate-600 dark:text-amber-300 transition-all active:scale-95"
+        >
+          <i id="themeIcon" class="fa-solid fa-sun text-xs"></i>
+        </button>
+
+        <button
+          id="logout"
+          type="button"
+          class="btn-ghost-danger inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 border border-transparent hover:border-rose-200/60 dark:hover:border-rose-500/20 transition-all active:scale-95"
+        >
+          <i class="fa-solid fa-right-from-bracket text-xs"></i>
+          <span class="hidden sm:inline">Logout</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== SIDEBAR + MAIN ==================== -->
+  <div class="admin-shell relative z-10 flex min-h-[calc(100vh-4rem)] max-w-[1600px] mx-auto">
+    
+    <!-- Mobile Backdrop -->
+    <div id="adminSidebarBackdrop" class="sidebar-backdrop hidden fixed inset-0 z-30 bg-slate-950/60 backdrop-blur-xs lg:hidden" aria-hidden="true"></div>
+
+    <!-- Sidebar -->
+    <aside id="adminSidebar" class="glass-sidebar admin-sidebar w-[268px] shrink-0 flex flex-col justify-between p-4 select-none" aria-label="Admin navigation">
+      <div class="sidebar-top space-y-6 overflow-y-auto pr-1">
+        
+        <!-- Primary Menu -->
+        <div>
+          <div class="sidebar-label px-3 mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+            Management Menu
+          </div>
+          <nav id="nav" class="space-y-1" aria-label="Admin sidebar navigation">
+            <a href="#/dash">
+              <i class="fa-solid fa-chart-pie w-4 text-center text-xs text-indigo-500"></i>
+              <span>Dashboard</span>
+            </a>
+            <a href="#/syllabus">
+              <i class="fa-solid fa-sitemap w-4 text-center text-xs text-violet-500"></i>
+              <span>Syllabus</span>
+            </a>
+            <a href="#/bank">
+              <i class="fa-solid fa-database w-4 text-center text-xs text-cyan-500"></i>
+              <span>Question bank</span>
+            </a>
+            <a href="#/materials">
+              <i class="fa-solid fa-book-open w-4 text-center text-xs text-emerald-500"></i>
+              <span>Study materials</span>
+            </a>
+            <a href="#/videos">
+              <i class="fa-solid fa-circle-play w-4 text-center text-xs text-rose-500"></i>
+              <span>Video lectures</span>
+            </a>
+            <a href="#/import">
+              <i class="fa-solid fa-file-excel w-4 text-center text-xs text-teal-500"></i>
+              <span>Excel import</span>
+            </a>
+            <a href="#/users" id="usersLink">
+              <i class="fa-solid fa-users-gear w-4 text-center text-xs text-amber-500"></i>
+              <span>Users</span>
+            </a>
+            
+            <div class="pt-2 mt-2 border-t border-slate-200/70 dark:border-white/[0.06]">
+              <a href="app.html" class="nav-external group">
+                <i class="fa-solid fa-up-right-from-square w-4 text-center text-xs text-slate-400 group-hover:text-indigo-400"></i>
+                <span>Student view</span>
+              </a>
+            </div>
+          </nav>
+        </div>
+
+        <!-- Quick Lists -->
+        <div class="sidebar-quick pt-4 border-t border-slate-200/70 dark:border-white/[0.06]">
+          <div class="sidebar-label px-3 mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+            Content Lists
+          </div>
+          <div class="space-y-0.5">
+            <a href="#/syllabus" class="quick-link"><span>Boards &amp; Classes</span><i class="fa-solid fa-chevron-right text-[10px]"></i></a>
+            <a href="#/syllabus" class="quick-link"><span>Chapters &amp; Topics</span><i class="fa-solid fa-chevron-right text-[10px]"></i></a>
+            <a href="#/bank" class="quick-link"><span>MCQ Question List</span><i class="fa-solid fa-chevron-right text-[10px]"></i></a>
+            <a href="#/materials" class="quick-link"><span>Study Materials</span><i class="fa-solid fa-chevron-right text-[10px]"></i></a>
+            <a href="#/videos" class="quick-link"><span>Video Lectures</span><i class="fa-solid fa-chevron-right text-[10px]"></i></a>
+            <a href="#/users" class="quick-link"><span>Students &amp; Staff</span><i class="fa-solid fa-chevron-right text-[10px]"></i></a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Status Badge -->
+      <div class="sidebar-foot mt-4 pt-3 border-t border-slate-200/70 dark:border-white/[0.06]">
+        <div class="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-slate-100/80 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.05]">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <span class="text-[11px] font-medium text-slate-600 dark:text-slate-400">Fast Cache Active</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Viewport -->
+    <main class="container admin-main flex-1 p-4 sm:p-6 lg:p-8 min-w-0" id="view">
+      <div class="card center min-h-[60vh] rounded-2xl border border-slate-200/80 dark:border-white/[0.07] bg-white/70 dark:bg-white/[0.02] backdrop-blur-md flex flex-col items-center justify-center gap-4 p-8 shadow-sm">
+        <div class="modern-loader" role="status" aria-label="Loading"></div>
+        <div class="text-center">
+          <p class="text-sm font-medium text-slate-700 dark:text-slate-200">Loading admin workspace…</p>
+          <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">Syncing syllabus and question bank modules</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Native Modal -->
+  <dialog id="dlg"></dialog>
+
+  <!-- SheetJS for Excel import -->
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <!-- Admin SPA boot -->
+  <script type="module" src="js/admin.js"></script>
+</body>
+</html>

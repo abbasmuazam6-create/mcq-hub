@@ -1,0 +1,1512 @@
+<!doctype html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Topper Hub – Practice MCQs by Board, Class and Topic</title>
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          animation: {
+            'spin-slow': 'spin 10s linear infinite',
+            'spin-reverse': 'spinReverse 13s linear infinite',
+            'blob': 'blob 12s infinite alternate',
+            'float': 'float 6s ease-in-out infinite',
+            'pulse-glow': 'pulseGlow 3s ease-in-out infinite',
+            'shimmer': 'shimmer 2.4s infinite',
+            'marquee': 'marquee 32s linear infinite',
+          },
+          keyframes: {
+            spinReverse: {
+              '0%': { transform: 'rotate(360deg)' },
+              '100%': { transform: 'rotate(0deg)' },
+            },
+            blob: {
+              '0%': { transform: 'translate(0px, 0px) scale(1)' },
+              '33%': { transform: 'translate(35px, -45px) scale(1.12)' },
+              '66%': { transform: 'translate(-25px, 25px) scale(0.92)' },
+              '100%': { transform: 'translate(0px, 0px) scale(1)' },
+            },
+            float: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-10px)' },
+            },
+            pulseGlow: {
+              '0%, 100%': { opacity: '0.5', transform: 'scale(0.96)' },
+              '50%': { opacity: '1', transform: 'scale(1.06)' },
+            },
+            shimmer: {
+              '0%': { transform: 'translateX(-150%) skewX(-20deg)' },
+              '100%': { transform: 'translateX(250%) skewX(-20deg)' },
+            },
+            marquee: {
+              '0%': { transform: 'translateX(0%)' },
+              '100%': { transform: 'translateX(-50%)' },
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+    }
+    h1, h2, h3, h4, .font-display {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    /* ==================== 1. HIGH-ANIMATION LOGO PRELOADER ==================== */
+    #preloader {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 50% 45%, #1e1b4b 0%, #090d16 65%, #030712 100%);
+      transition: opacity 0.75s cubic-bezier(0.77, 0, 0.175, 1), transform 0.85s cubic-bezier(0.77, 0, 0.175, 1), visibility 0.85s;
+    }
+    #preloader.loader-exit {
+      opacity: 0;
+      transform: translateY(-100%);
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    @keyframes logoEntrance {
+      0% { opacity: 0; transform: scale(0.45) rotateY(-40deg); }
+      65% { opacity: 1; transform: scale(1.08) rotateY(8deg); }
+      100% { opacity: 1; transform: scale(1) rotateY(0deg); }
+    }
+    .loader-logo-stage {
+      animation: logoEntrance 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes letterRise {
+      0% { opacity: 0; transform: translateY(20px) scale(0.9); filter: blur(6px); }
+      100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+    }
+    .loader-char {
+      display: inline-block;
+      opacity: 0;
+      animation: letterRise 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* ==================== 2. GLASSMORPHISM & SURFACES ==================== */
+    .glass-nav {
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+    }
+    .dark .glass-nav {
+      background: rgba(7, 11, 20, 0.78);
+      border-bottom: 1px solid rgba(99, 102, 241, 0.18);
+    }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(226, 232, 240, 0.95);
+      box-shadow: 0 20px 45px -15px rgba(15, 23, 42, 0.08);
+    }
+    .dark .glass-card {
+      background: rgba(15, 23, 42, 0.78);
+      border: 1px solid rgba(99, 102, 241, 0.22);
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.65), inset 0 1px 0 0 rgba(255, 255, 255, 0.07);
+    }
+
+    .auth-glow-wrapper {
+      position: relative;
+      border-radius: 1.75rem;
+      padding: 1.5px;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.65), rgba(6, 182, 212, 0.45), rgba(168, 85, 247, 0.6));
+    }
+
+    /* ==================== 3. HERO & SCROLL REVEAL ANIMATIONS ==================== */
+    .hero-stagger {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1), transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    body.app-ready .hero-stagger {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    body.app-ready .stagger-1 { transition-delay: 0.06s; }
+    body.app-ready .stagger-2 { transition-delay: 0.15s; }
+    body.app-ready .stagger-3 { transition-delay: 0.24s; }
+    body.app-ready .stagger-4 { transition-delay: 0.33s; }
+    body.app-ready .stagger-5 { transition-delay: 0.42s; }
+
+    .reveal-on-scroll {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .reveal-on-scroll.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ==================== 4. SHARED FORM & NOTICE STYLES ==================== */
+    .brand span {
+      background: linear-gradient(135deg, #6366f1 0%, #06b6d4 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .form-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 0.95rem;
+    }
+    .form-stack[hidden] {
+      display: none !important;
+    }
+    .form-stack label.field-label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+    .form-stack input:not([type="checkbox"]) {
+      width: 100%;
+      padding: 0.78rem 1rem;
+      border-radius: 0.85rem;
+      font-size: 0.92rem;
+      font-weight: 400;
+      outline: none;
+      transition: all 0.22s ease;
+    }
+
+    .notice:not([hidden]) {
+      padding: 0.75rem 1rem;
+      border-radius: 0.85rem;
+      font-size: 0.84rem;
+      font-weight: 500;
+      margin-bottom: 1rem;
+      background: rgba(99, 102, 241, 0.14);
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      color: #4f46e5;
+      animation: fadeSlideDown 0.3s ease;
+    }
+    .dark .notice:not([hidden]) {
+      color: #a5b4fc;
+    }
+    .err:not(:empty) {
+      padding: 0.65rem 0.9rem;
+      border-radius: 0.75rem;
+      font-size: 0.82rem;
+      font-weight: 500;
+      background: rgba(244, 63, 94, 0.14);
+      border: 1px solid rgba(244, 63, 94, 0.35);
+      color: #e11d48;
+      animation: shakeX 0.38s ease;
+    }
+    .dark .err:not(:empty) {
+      color: #fda4af;
+    }
+
+    @keyframes fadeSlideDown {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes shakeX {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      50% { transform: translateX(6px); }
+      75% { transform: translateX(-4px); }
+    }
+
+    /* Ripple & Card Hover Elevation */
+    .btn-ripple {
+      position: relative;
+      overflow: hidden;
+    }
+    .ripple-circle {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.38);
+      transform: scale(0);
+      animation: rippleAnim 0.6s linear;
+      pointer-events: none;
+    }
+    @keyframes rippleAnim {
+      to { transform: scale(4); opacity: 0; }
+    }
+
+    .tilt-card {
+      transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease;
+    }
+    .tilt-card:hover {
+      transform: translateY(-6px);
+    }
+
+    /* ==================== 5. CONTRIBUTORS MARQUEE & MODALS ==================== */
+    .marquee-mask {
+      mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+      -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+    }
+    .marquee-track {
+      display: flex;
+      width: max-content;
+    }
+    .marquee-wrapper:hover .marquee-track {
+      animation-play-state: paused;
+    }
+
+    .modal-backdrop {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .modal-backdrop.is-open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-panel {
+      transform: scale(0.95) translateY(14px);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .modal-backdrop.is-open .modal-panel {
+      transform: scale(1) translateY(0);
+    }
+
+    /* FAQ Accordion */
+    .faq-answer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+      opacity: 0;
+    }
+    .faq-item.open .faq-answer {
+      max-height: 220px;
+      opacity: 1;
+    }
+    .faq-item.open .faq-chevron {
+      transform: rotate(180deg);
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-[#070b14] dark:text-slate-100 min-h-screen transition-colors duration-300 selection:bg-indigo-500 selection:text-white">
+
+  <!-- ==================== 1. HIGH-ANIMATION LOGO PRELOADER ==================== -->
+  <div id="preloader" aria-label="Loading Topper Hub">
+    <div class="absolute w-80 h-80 rounded-full bg-indigo-600/25 blur-3xl animate-pulse-glow pointer-events-none"></div>
+    <div class="absolute w-64 h-64 rounded-full bg-cyan-500/20 blur-3xl animate-blob pointer-events-none"></div>
+
+    <div class="loader-logo-stage relative flex items-center justify-center w-36 h-36 mb-6">
+      <svg class="absolute inset-0 w-full h-full animate-spin-slow text-indigo-400/50" viewBox="0 0 140 140">
+        <circle cx="70" cy="70" r="64" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="10 8" />
+        <circle cx="70" cy="6" r="4" fill="#38bdf8" />
+      </svg>
+
+      <svg class="absolute inset-2 w-[124px] h-[124px] animate-spin-reverse" viewBox="0 0 124 124">
+        <defs>
+          <linearGradient id="loaderArcGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#6366f1" />
+            <stop offset="50%" stop-color="#06b6d4" />
+            <stop offset="100%" stop-color="transparent" />
+          </linearGradient>
+        </defs>
+        <circle cx="62" cy="62" r="54" fill="none" stroke="url(#loaderArcGrad)" stroke-width="3" stroke-linecap="round" stroke-dasharray="190 150" />
+      </svg>
+
+      <div class="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-600/30 via-slate-900/90 to-cyan-500/30 border border-indigo-400/40 shadow-2xl shadow-indigo-500/40 flex items-center justify-center overflow-hidden backdrop-blur-md">
+        <div class="absolute inset-0 w-1/2 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer pointer-events-none"></div>
+        <img
+          src="assets/images/logo.png"
+          alt="Topper Hub Logo"
+          class="w-14 h-14 object-contain relative z-10"
+          onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');"
+        />
+        <svg class="hidden w-12 h-12 relative z-10" viewBox="0 0 64 64" fill="none">
+          <defs>
+            <linearGradient id="capGradLoader" x1="8" y1="12" x2="56" y2="52" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#818cf8" />
+              <stop offset="50%" stop-color="#6366f1" />
+              <stop offset="100%" stop-color="#22d3ee" />
+            </linearGradient>
+          </defs>
+          <path d="M32 10L6 23L32 36L58 23L32 10Z" fill="url(#capGradLoader)" />
+          <path d="M16 30V43C16 47.5 23.2 52 32 52C40.8 52 48 47.5 48 43V30L32 38L16 30Z" fill="url(#capGradLoader)" fill-opacity="0.75" />
+          <path d="M54 25V41" stroke="#38bdf8" stroke-width="3" stroke-linecap="round" />
+          <circle cx="54" cy="43" r="3" fill="#38bdf8" />
+        </svg>
+      </div>
+    </div>
+
+    <div class="font-display font-extrabold text-2xl sm:text-3xl tracking-tight text-white mb-2 flex items-center gap-1">
+      <span class="loader-char" style="animation-delay:0.08s">T</span>
+      <span class="loader-char" style="animation-delay:0.12s">o</span>
+      <span class="loader-char" style="animation-delay:0.16s">p</span>
+      <span class="loader-char" style="animation-delay:0.20s">p</span>
+      <span class="loader-char" style="animation-delay:0.24s">e</span>
+      <span class="loader-char" style="animation-delay:0.28s">r</span>
+      <span class="w-1.5"></span>
+      <span class="loader-char bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent" style="animation-delay:0.34s">H</span>
+      <span class="loader-char bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent" style="animation-delay:0.38s">u</span>
+      <span class="loader-char bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent" style="animation-delay:0.42s">b</span>
+    </div>
+
+    <p id="loaderStatusText" class="text-xs font-medium tracking-widest uppercase text-indigo-300/80 mb-5">
+      Practice MCQs Topic by Topic...
+    </p>
+
+    <div class="w-60 sm:w-72 h-1.5 rounded-full bg-slate-800/90 overflow-hidden p-[1px] border border-indigo-500/20">
+      <div id="loaderProgressBar" class="h-full w-0 rounded-full bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-400 transition-all duration-150"></div>
+    </div>
+    <span id="loaderPercentText" class="mt-2.5 font-display text-xs font-bold text-slate-400">0%</span>
+  </div>
+
+  <!-- ==================== 2. BACKGROUND PARTICLE CANVAS & GRADIENT ORBS ==================== -->
+  <canvas id="bgParticleCanvas" class="fixed inset-0 -z-10 pointer-events-none opacity-60 dark:opacity-85"></canvas>
+  <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+    <div class="absolute -top-32 -left-24 w-[28rem] h-[28rem] rounded-full bg-indigo-500/20 blur-3xl animate-blob"></div>
+    <div class="absolute top-1/3 -right-24 w-[30rem] h-[30rem] rounded-full bg-cyan-500/15 blur-3xl animate-blob" style="animation-delay: 2.5s;"></div>
+    <div class="absolute bottom-10 left-1/4 w-[24rem] h-[24rem] rounded-full bg-purple-500/15 blur-3xl animate-blob" style="animation-delay: 4.5s;"></div>
+  </div>
+
+  <!-- ==================== 3. STICKY GLASSMORPHIC NAVBAR ==================== -->
+  <header class="glass-nav sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-4">
+      <a href="#top" class="flex items-center gap-3 group shrink-0">
+        <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-indigo-600/20 to-cyan-500/20 border border-indigo-500/30 flex items-center justify-center overflow-hidden shadow-lg shadow-indigo-500/15 group-hover:scale-105 transition-transform">
+          <img
+            src="assets/images/logo.png"
+            alt="Topper Hub Logo"
+            class="w-8 h-8 object-contain"
+            onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');"
+          />
+          <svg class="hidden w-7 h-7" viewBox="0 0 64 64" fill="none">
+            <path d="M32 10L6 23L32 36L58 23L32 10Z" fill="#6366f1" />
+            <path d="M16 30V43C16 47.5 23.2 52 32 52C40.8 52 48 47.5 48 43V30L32 38L16 30Z" fill="#22d3ee" fill-opacity="0.85" />
+            <path d="M54 25V41" stroke="#38bdf8" stroke-width="3" stroke-linecap="round" />
+          </svg>
+        </div>
+        <div class="brand font-display font-extrabold text-xl sm:text-2xl tracking-tight">
+          Topper <span>Hub</span>
+        </div>
+      </a>
+
+      <nav class="hidden lg:flex items-center gap-7 text-sm font-medium text-slate-600 dark:text-slate-300">
+        <a href="#features" class="hover:text-indigo-500 dark:hover:text-cyan-400 transition-colors">Features</a>
+        <a href="#boards" class="hover:text-indigo-500 dark:hover:text-cyan-400 transition-colors">Boards & Subjects</a>
+        <a href="#demo" class="hover:text-indigo-500 dark:hover:text-cyan-400 transition-colors">Live MCQ Demo</a>
+        <a href="#contributors" class="hover:text-indigo-500 dark:hover:text-cyan-400 transition-colors">Contributors</a>
+        <a href="#faq" class="hover:text-indigo-500 dark:hover:text-cyan-400 transition-colors">FAQ</a>
+      </nav>
+
+      <div class="flex items-center gap-2 sm:gap-3">
+        <button
+          type="button"
+          data-auth-action="login"
+          class="btn-ripple px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 bg-slate-200/70 dark:bg-slate-800/80 hover:bg-indigo-500/15 hover:text-indigo-600 dark:hover:text-indigo-300 border border-slate-300/60 dark:border-slate-700/80 transition-all"
+        >
+          Login
+        </button>
+
+        <button
+          type="button"
+          data-auth-action="register"
+          class="btn-ripple px-3.5 sm:px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 shadow-lg shadow-indigo-600/25 transition-all hover:-translate-y-0.5 flex items-center gap-1.5"
+        >
+          <span>Register</span>
+          <i class="fa-solid fa-arrow-right text-[11px] hidden sm:inline"></i>
+        </button>
+
+        <button
+          id="themeToggle"
+          type="button"
+          aria-label="Toggle color theme"
+          class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center bg-slate-200/70 dark:bg-slate-800/80 text-slate-700 dark:text-amber-400 hover:scale-105 transition-transform"
+        >
+          <i id="themeIcon" class="fa-solid fa-sun text-sm"></i>
+        </button>
+
+        <button
+          id="mobileMenuBtn"
+          type="button"
+          aria-label="Open navigation menu"
+          class="lg:hidden w-9 h-9 rounded-xl flex items-center justify-center bg-slate-200/70 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200"
+        >
+          <i class="fa-solid fa-bars text-sm"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Navigation Drawer -->
+    <div id="mobileMenu" class="hidden lg:hidden px-4 pb-5 pt-2 border-t border-slate-200/70 dark:border-slate-800/80 space-y-2">
+      <a href="#features" class="mobile-nav-link block px-3 py-2 rounded-xl text-sm font-medium hover:bg-indigo-500/10">Features</a>
+      <a href="#boards" class="mobile-nav-link block px-3 py-2 rounded-xl text-sm font-medium hover:bg-indigo-500/10">Boards & Subjects</a>
+      <a href="#demo" class="mobile-nav-link block px-3 py-2 rounded-xl text-sm font-medium hover:bg-indigo-500/10">Live MCQ Demo</a>
+      <a href="#contributors" class="mobile-nav-link block px-3 py-2 rounded-xl text-sm font-medium hover:bg-indigo-500/10">Contributors</a>
+      <a href="#faq" class="mobile-nav-link block px-3 py-2 rounded-xl text-sm font-medium hover:bg-indigo-500/10">FAQ</a>
+      <div class="grid grid-cols-2 gap-2 pt-2">
+        <button type="button" data-auth-action="login" class="mobile-nav-link py-2.5 rounded-xl text-sm font-semibold bg-slate-200/80 dark:bg-slate-800">Login</button>
+        <button type="button" data-auth-action="register" class="mobile-nav-link py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-cyan-600">Register Free</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== 4. HERO SECTION ==================== -->
+  <section id="top" class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-16 sm:pt-16 sm:pb-24 text-center">
+    <div class="space-y-7">
+      <div class="hero-stagger stagger-1 inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full text-xs font-semibold bg-indigo-500/10 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 border border-indigo-500/25">
+        <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+        <span class="brand font-display font-bold text-sm">Topper <span>Hub</span></span>
+        <span class="text-slate-400">•</span>
+        <span>Board-Aligned MCQ Mastery</span>
+      </div>
+
+      <h1 class="hero-stagger stagger-2 font-display font-extrabold text-4xl sm:text-5xl lg:text-6xl tracking-tight leading-[1.08] max-w-4xl mx-auto">
+        Practice MCQs
+        <span class="bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-400 bg-clip-text text-transparent">
+          topic by topic.
+        </span>
+      </h1>
+
+      <p class="hero-stagger stagger-2 text-base sm:text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed">
+        Master every board chapter with precision. Drill down by board, class, and topic, build custom timed mock exams, and turn your mistakes into top exam scores.
+      </p>
+
+      <!-- Dual Action CTA Row Opening Separate Modals -->
+      <div class="hero-stagger stagger-3 flex flex-wrap items-center justify-center gap-3.5 pt-1">
+        <button
+          type="button"
+          data-auth-action="register"
+          class="btn-ripple px-7 py-3.5 rounded-2xl font-display font-bold text-sm text-white bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 shadow-xl shadow-indigo-600/25 transition-all hover:-translate-y-0.5 flex items-center gap-2.5"
+        >
+          <span>Create Free Account</span>
+          <i class="fa-solid fa-user-plus text-xs"></i>
+        </button>
+
+        <button
+          type="button"
+          data-auth-action="login"
+          class="btn-ripple px-7 py-3.5 rounded-2xl font-display font-bold text-sm glass-card hover:border-indigo-500/50 transition-all hover:-translate-y-0.5 flex items-center gap-2.5"
+        >
+          <i class="fa-solid fa-right-to-bracket text-indigo-500"></i>
+          <span>Student Login</span>
+        </button>
+
+        <a
+          href="#demo"
+          class="px-4 py-3 text-sm font-semibold text-indigo-600 dark:text-cyan-400 hover:underline flex items-center gap-1.5"
+        >
+          <span>Try Live MCQ</span>
+          <i class="fa-solid fa-chevron-down text-xs"></i>
+        </a>
+      </div>
+
+      <!-- 3 Core Value Pillars -->
+      <ul class="hero-stagger stagger-4 grid md:grid-cols-3 gap-4 text-left pt-4">
+        <li class="glass-card p-5 rounded-2xl flex flex-col gap-3 hover:-translate-y-1 transition-transform duration-300">
+          <div class="w-11 h-11 rounded-xl bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 text-lg">
+            <i class="fa-solid fa-layer-group"></i>
+          </div>
+          <div>
+            <div class="font-semibold text-sm sm:text-base">Choose board, class & topic</div>
+            <div class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">Complete syllabus mapping for Federal, Punjab, Sindh, KPK, Balochistan & Cambridge.</div>
+          </div>
+        </li>
+
+        <li class="glass-card p-5 rounded-2xl flex flex-col gap-3 hover:-translate-y-1 transition-transform duration-300">
+          <div class="w-11 h-11 rounded-xl bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 flex items-center justify-center shrink-0 text-lg">
+            <i class="fa-solid fa-sliders"></i>
+          </div>
+          <div>
+            <div class="font-semibold text-sm sm:text-base">Build custom timed tests</div>
+            <div class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">Combine multiple chapters, select difficulty, and practice under real exam conditions.</div>
+          </div>
+        </li>
+
+        <li class="glass-card p-5 rounded-2xl flex flex-col gap-3 hover:-translate-y-1 transition-transform duration-300">
+          <div class="w-11 h-11 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 text-lg">
+            <i class="fa-solid fa-lightbulb"></i>
+          </div>
+          <div>
+            <div class="font-semibold text-sm sm:text-base">Explanations & mistakes list</div>
+            <div class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">Every wrong answer is saved automatically for smart revision before exam day.</div>
+          </div>
+        </li>
+      </ul>
+
+      <!-- Animated Metrics Strip -->
+      <div class="hero-stagger stagger-5 grid grid-cols-3 gap-4 max-w-2xl mx-auto pt-4 border-t border-slate-200/80 dark:border-slate-800/80">
+        <div>
+          <div class="font-display font-extrabold text-2xl sm:text-3xl bg-gradient-to-r from-indigo-500 to-cyan-400 bg-clip-text text-transparent">
+            <span class="stat-counter" data-target="50000" data-suffix="+">0</span>
+          </div>
+          <div class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">Verified Board MCQs</div>
+        </div>
+        <div>
+          <div class="font-display font-extrabold text-2xl sm:text-3xl text-slate-900 dark:text-white">
+            <span class="stat-counter" data-target="14" data-suffix="+">0</span>
+          </div>
+          <div class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">Boards & Entry Tests</div>
+        </div>
+        <div>
+          <div class="font-display font-extrabold text-2xl sm:text-3xl text-emerald-500">
+            <span class="stat-counter" data-target="98" data-suffix="%">0</span>
+          </div>
+          <div class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">Concept Retention</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 5. CORE PLATFORM FEATURES SECTION ==================== -->
+  <section id="features" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 border-t border-slate-200/70 dark:border-slate-800/70">
+    <div class="text-center max-w-3xl mx-auto mb-14 reveal-on-scroll">
+      <span class="inline-block px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 mb-3">
+        Why Topper Hub
+      </span>
+      <h2 class="font-display font-extrabold text-3xl sm:text-4xl tracking-tight mb-4">
+        Built for Laser-Focused Exam Preparation
+      </h2>
+      <p class="text-slate-600 dark:text-slate-400 text-sm sm:text-base">
+        Every tool inside Topper Hub is engineered to eliminate guesswork and turn chapter-by-chapter study into top board results.
+      </p>
+    </div>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="reveal-on-scroll tilt-card glass-card rounded-3xl p-6 sm:p-7">
+        <div class="w-12 h-12 rounded-2xl bg-indigo-500/15 text-indigo-500 flex items-center justify-center text-xl mb-5">
+          <i class="fa-solid fa-sitemap"></i>
+        </div>
+        <h3 class="font-display font-bold text-lg mb-2">Board, Class & Topic Hierarchy</h3>
+        <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+          Navigate cleanly from your Examination Board down to Class, Subject, Chapter, and individual syllabus sub-topics.
+        </p>
+      </div>
+
+      <div class="reveal-on-scroll tilt-card glass-card rounded-3xl p-6 sm:p-7" style="transition-delay: 0.08s;">
+        <div class="w-12 h-12 rounded-2xl bg-cyan-500/15 text-cyan-500 flex items-center justify-center text-xl mb-5">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+        </div>
+        <h3 class="font-display font-bold text-lg mb-2">Custom Test Builder</h3>
+        <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+          Select any combination of chapters or weak topics, choose your question count, and generate an instant timed quiz.
+        </p>
+      </div>
+
+      <div class="reveal-on-scroll tilt-card glass-card rounded-3xl p-6 sm:p-7" style="transition-delay: 0.16s;">
+        <div class="w-12 h-12 rounded-2xl bg-emerald-500/15 text-emerald-500 flex items-center justify-center text-xl mb-5">
+          <i class="fa-solid fa-book-open-reader"></i>
+        </div>
+        <h3 class="font-display font-bold text-lg mb-2">Step-by-Step Explanations</h3>
+        <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+          Understand the exact formula, concept, or textbook reference behind every correct option immediately after answering.
+        </p>
+      </div>
+
+      <div class="reveal-on-scroll tilt-card glass-card rounded-3xl p-6 sm:p-7">
+        <div class="w-12 h-12 rounded-2xl bg-amber-500/15 text-amber-500 flex items-center justify-center text-xl mb-5">
+          <i class="fa-solid fa-bookmark"></i>
+        </div>
+        <h3 class="font-display font-bold text-lg mb-2">One-Click Smart Bookmarks</h3>
+        <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+          Flag tricky or high-yield MCQs during practice so you can revise your personal starred bank right before exams.
+        </p>
+      </div>
+
+      <div class="reveal-on-scroll tilt-card glass-card rounded-3xl p-6 sm:p-7" style="transition-delay: 0.08s;">
+        <div class="w-12 h-12 rounded-2xl bg-rose-500/15 text-rose-500 flex items-center justify-center text-xl mb-5">
+          <i class="fa-solid fa-rotate-left"></i>
+        </div>
+        <h3 class="font-display font-bold text-lg mb-2">Automated Mistakes List</h3>
+        <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+          Every question you miss is automatically logged into your Mistakes List until you re-attempt and master it.
+        </p>
+      </div>
+
+      <div class="reveal-on-scroll tilt-card glass-card rounded-3xl p-6 sm:p-7" style="transition-delay: 0.16s;">
+        <div class="w-12 h-12 rounded-2xl bg-purple-500/15 text-purple-500 flex items-center justify-center text-xl mb-5">
+          <i class="fa-solid fa-chart-line"></i>
+        </div>
+        <h3 class="font-display font-bold text-lg mb-2">Topic Accuracy Analytics</h3>
+        <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+          Spot your strongest and weakest chapters at a glance with real-time accuracy percentages and streak tracking.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 6. BOARDS, CLASSES & SUBJECT EXPLORER ==================== -->
+  <section id="boards" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 border-t border-slate-200/70 dark:border-slate-800/70">
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 reveal-on-scroll">
+      <div>
+        <span class="inline-block px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 mb-3">
+          Syllabus Explorer
+        </span>
+        <h2 class="font-display font-extrabold text-3xl sm:text-4xl tracking-tight">
+          Boards, Classes & Subject Banks
+        </h2>
+      </div>
+
+      <div class="flex flex-wrap gap-2" id="boardFilters">
+        <button type="button" data-filter="all" class="board-filter-btn active px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white shadow-md shadow-indigo-600/25 transition-all">
+          All Streams
+        </button>
+        <button type="button" data-filter="matric" class="board-filter-btn px-4 py-2 rounded-xl text-xs font-semibold glass-card hover:border-indigo-500/40 transition-all">
+          Class 9 & 10 (SSC)
+        </button>
+        <button type="button" data-filter="inter" class="board-filter-btn px-4 py-2 rounded-xl text-xs font-semibold glass-card hover:border-indigo-500/40 transition-all">
+          Class 11 & 12 (HSSC)
+        </button>
+        <button type="button" data-filter="entry" class="board-filter-btn px-4 py-2 rounded-xl text-xs font-semibold glass-card hover:border-indigo-500/40 transition-all">
+          MDCAT / ECAT / O-A Levels
+        </button>
+      </div>
+    </div>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" id="subjectGrid">
+      <div data-stream="matric inter entry" class="subject-card reveal-on-scroll tilt-card glass-card rounded-3xl p-6 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="w-11 h-11 rounded-2xl bg-indigo-500/15 text-indigo-500 flex items-center justify-center text-lg">
+              <i class="fa-solid fa-atom"></i>
+            </span>
+            <span class="text-xs font-semibold px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-300">9,400+ MCQs</span>
+          </div>
+          <h3 class="font-display font-bold text-xl mb-1.5">Physics</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Mechanics, Electromagnetism, Waves, Modern Physics & Numericals</p>
+        </div>
+        <div class="pt-4 border-t border-slate-200/70 dark:border-slate-800/80 flex items-center justify-between">
+          <span class="text-xs font-medium text-slate-500">21 Chapters • 140+ Topics</span>
+          <button type="button" data-auth-action="register" class="text-xs font-bold text-indigo-600 dark:text-cyan-400 hover:underline flex items-center gap-1">
+            <span>Practice</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
+          </button>
+        </div>
+      </div>
+
+      <div data-stream="matric inter entry" class="subject-card reveal-on-scroll tilt-card glass-card rounded-3xl p-6 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="w-11 h-11 rounded-2xl bg-cyan-500/15 text-cyan-500 flex items-center justify-center text-lg">
+              <i class="fa-solid fa-flask-vial"></i>
+            </span>
+            <span class="text-xs font-semibold px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-300">8,800+ MCQs</span>
+          </div>
+          <h3 class="font-display font-bold text-xl mb-1.5">Chemistry</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Physical, Organic Reactions, Inorganic Periodicity & Stoichiometry</p>
+        </div>
+        <div class="pt-4 border-t border-slate-200/70 dark:border-slate-800/80 flex items-center justify-between">
+          <span class="text-xs font-medium text-slate-500">24 Chapters • 165+ Topics</span>
+          <button type="button" data-auth-action="register" class="text-xs font-bold text-indigo-600 dark:text-cyan-400 hover:underline flex items-center gap-1">
+            <span>Practice</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
+          </button>
+        </div>
+      </div>
+
+      <div data-stream="matric inter entry" class="subject-card reveal-on-scroll tilt-card glass-card rounded-3xl p-6 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="w-11 h-11 rounded-2xl bg-emerald-500/15 text-emerald-500 flex items-center justify-center text-lg">
+              <i class="fa-solid fa-dna"></i>
+            </span>
+            <span class="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">10,200+ MCQs</span>
+          </div>
+          <h3 class="font-display font-bold text-xl mb-1.5">Biology</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Cell Biology, Bioenergetics, Human Physiology, Genetics & Ecology</p>
+        </div>
+        <div class="pt-4 border-t border-slate-200/70 dark:border-slate-800/80 flex items-center justify-between">
+          <span class="text-xs font-medium text-slate-500">27 Chapters • 190+ Topics</span>
+          <button type="button" data-auth-action="register" class="text-xs font-bold text-indigo-600 dark:text-cyan-400 hover:underline flex items-center gap-1">
+            <span>Practice</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
+          </button>
+        </div>
+      </div>
+
+      <div data-stream="matric inter entry" class="subject-card reveal-on-scroll tilt-card glass-card rounded-3xl p-6 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="w-11 h-11 rounded-2xl bg-violet-500/15 text-violet-500 flex items-center justify-center text-lg">
+              <i class="fa-solid fa-square-root-variable"></i>
+            </span>
+            <span class="text-xs font-semibold px-3 py-1 rounded-full bg-violet-500/10 text-violet-600 dark:text-violet-300">7,600+ MCQs</span>
+          </div>
+          <h3 class="font-display font-bold text-xl mb-1.5">Mathematics</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Algebra, Trigonometry, Calculus, Vectors & Analytical Geometry</p>
+        </div>
+        <div class="pt-4 border-t border-slate-200/70 dark:border-slate-800/80 flex items-center justify-between">
+          <span class="text-xs font-medium text-slate-500">20 Chapters • 130+ Topics</span>
+          <button type="button" data-auth-action="register" class="text-xs font-bold text-indigo-600 dark:text-cyan-400 hover:underline flex items-center gap-1">
+            <span>Practice</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
+          </button>
+        </div>
+      </div>
+
+      <div data-stream="matric inter" class="subject-card reveal-on-scroll tilt-card glass-card rounded-3xl p-6 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="w-11 h-11 rounded-2xl bg-amber-500/15 text-amber-500 flex items-center justify-center text-lg">
+              <i class="fa-solid fa-code"></i>
+            </span>
+            <span class="text-xs font-semibold px-3 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-300">5,400+ MCQs</span>
+          </div>
+          <h3 class="font-display font-bold text-xl mb-1.5">Computer Science</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">C/Python Programming, Data Structures, Databases & Networking</p>
+        </div>
+        <div class="pt-4 border-t border-slate-200/70 dark:border-slate-800/80 flex items-center justify-between">
+          <span class="text-xs font-medium text-slate-500">16 Chapters • 95+ Topics</span>
+          <button type="button" data-auth-action="register" class="text-xs font-bold text-indigo-600 dark:text-cyan-400 hover:underline flex items-center gap-1">
+            <span>Practice</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
+          </button>
+        </div>
+      </div>
+
+      <div data-stream="matric inter entry" class="subject-card reveal-on-scroll tilt-card glass-card rounded-3xl p-6 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="w-11 h-11 rounded-2xl bg-rose-500/15 text-rose-500 flex items-center justify-center text-lg">
+              <i class="fa-solid fa-feather-pointed"></i>
+            </span>
+            <span class="text-xs font-semibold px-3 py-1 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-300">8,600+ MCQs</span>
+          </div>
+          <h3 class="font-display font-bold text-xl mb-1.5">English & Vocabulary</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Grammar Correction, Synonyms, Antonyms, Idioms & Comprehension</p>
+        </div>
+        <div class="pt-4 border-t border-slate-200/70 dark:border-slate-800/80 flex items-center justify-between">
+          <span class="text-xs font-medium text-slate-500">18 Modules • 110+ Topics</span>
+          <button type="button" data-auth-action="register" class="text-xs font-bold text-indigo-600 dark:text-cyan-400 hover:underline flex items-center gap-1">
+            <span>Practice</span> <i class="fa-solid fa-arrow-right text-[10px]"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 7. INTERACTIVE LIVE MCQ DEMO STUDIO ==================== -->
+  <section id="demo" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 border-t border-slate-200/70 dark:border-slate-800/70">
+    <div class="grid lg:grid-cols-12 gap-8 items-center">
+      <div class="lg:col-span-5 space-y-5 reveal-on-scroll">
+        <span class="inline-block px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+          Interactive Practice Engine
+        </span>
+        <h2 class="font-display font-extrabold text-3xl sm:text-4xl tracking-tight">
+          Experience Instant Feedback & Smart Revision
+        </h2>
+        <p class="text-sm sm:text-base text-slate-600 dark:text-slate-400 leading-relaxed">
+          Test a sample board MCQ right here. Every question includes instant answer verification, a crystal-clear concept explanation, one-click bookmarking, and automatic mistake tracking.
+        </p>
+
+        <div class="flex flex-wrap gap-3 pt-2">
+          <div class="glass-card px-4 py-2.5 rounded-2xl flex items-center gap-2.5 text-xs font-semibold">
+            <i class="fa-solid fa-bookmark text-amber-400"></i>
+            <span>Bookmarked: <strong id="demoBookmarkCount">0</strong></span>
+          </div>
+          <div class="glass-card px-4 py-2.5 rounded-2xl flex items-center gap-2.5 text-xs font-semibold">
+            <i class="fa-solid fa-circle-exclamation text-rose-400"></i>
+            <span>Mistakes Logged: <strong id="demoMistakeCount">0</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="lg:col-span-7 reveal-on-scroll">
+        <div class="glass-card rounded-3xl p-6 sm:p-8 border border-indigo-500/25 shadow-xl">
+          <div class="flex flex-wrap items-center justify-between gap-3 pb-4 mb-5 border-b border-slate-200/70 dark:border-slate-800">
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-500/15 text-indigo-600 dark:text-indigo-300" id="demoQuestionTag">
+                Question 1 of 3
+              </span>
+              <span class="text-xs text-slate-500 dark:text-slate-400" id="demoTopicLabel">Physics • Class 12 • Electrostatics</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button
+                id="demoBookmarkBtn"
+                type="button"
+                class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-200/70 dark:bg-slate-800 hover:text-amber-400 transition-colors flex items-center gap-1.5"
+              >
+                <i class="fa-regular fa-bookmark"></i>
+                <span>Bookmark</span>
+              </button>
+              <button
+                id="nextDemoQBtn"
+                type="button"
+                class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-500 transition-colors flex items-center gap-1.5"
+              >
+                <span>Next MCQ</span>
+                <i class="fa-solid fa-forward-step text-[10px]"></i>
+              </button>
+            </div>
+          </div>
+
+          <h3 id="demoQuestionText" class="font-display font-bold text-base sm:text-lg mb-5 leading-snug">
+            If the distance between two point charges is doubled, the electrostatic force between them becomes:
+          </h3>
+
+          <div class="grid sm:grid-cols-2 gap-3" id="demoMcqOptions"></div>
+
+          <div id="demoExplanation" class="hidden mt-5 p-4 rounded-2xl text-xs sm:text-sm bg-emerald-500/10 border border-emerald-500/25 text-emerald-700 dark:text-emerald-300 leading-relaxed"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 8. EQUAL-SIZED MOVING CONTRIBUTORS SECTION ==================== -->
+  <!--
+    IMAGE FILENAMES TO PLACE IN assets/images/:
+      1. assets/images/contributor-1.jpg
+      2. assets/images/contributor-2.jpg
+      3. assets/images/contributor-3.jpg
+      4. assets/images/contributor-4.jpg
+      5. assets/images/contributor-5.jpg
+  -->
+  <section id="contributors" class="py-16 sm:py-24 border-t border-slate-200/70 dark:border-slate-800/70 overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-12 reveal-on-scroll">
+      <span class="inline-block px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 mb-3">
+        Community & Creators
+      </span>
+      <h2 class="font-display font-extrabold text-3xl sm:text-4xl tracking-tight mb-4">
+        Contributors
+      </h2>
+      <p class="text-sm sm:text-base text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+        Educators, subject specialists, and engineers collaborating to keep every topic bank accurate and up to date.
+      </p>
+    </div>
+
+    <div class="marquee-wrapper marquee-mask relative w-full py-2">
+      <div class="marquee-track animate-marquee gap-6 px-3" id="contributorsMarqueeTrack"></div>
+    </div>
+  </section>
+
+  <!-- ==================== 9. FAQ & FINAL CONVERSION BANNER ==================== -->
+  <section id="faq" class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 border-t border-slate-200/70 dark:border-slate-800/70">
+    <div class="text-center mb-12 reveal-on-scroll">
+      <span class="inline-block px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 mb-3">
+        Got Questions?
+      </span>
+      <h2 class="font-display font-extrabold text-3xl sm:text-4xl tracking-tight">
+        Frequently Asked Questions
+      </h2>
+    </div>
+
+    <div class="space-y-3.5 reveal-on-scroll">
+      <div class="faq-item glass-card rounded-2xl p-5 cursor-pointer">
+        <div class="flex items-center justify-between gap-4 font-display font-bold text-sm sm:text-base">
+          <span>Can I practice MCQs from specific chapters and sub-topics?</span>
+          <i class="fa-solid fa-chevron-down faq-chevron text-xs text-indigo-500 transition-transform duration-300"></i>
+        </div>
+        <div class="faq-answer text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+          <p class="pt-3">Yes! Once you log in, you can select your exact board, class, subject, chapter, and individual topic—or combine multiple chapters into a custom test.</p>
+        </div>
+      </div>
+
+      <div class="faq-item glass-card rounded-2xl p-5 cursor-pointer">
+        <div class="flex items-center justify-between gap-4 font-display font-bold text-sm sm:text-base">
+          <span>How does the Mistakes List help me improve my exam score?</span>
+          <i class="fa-solid fa-chevron-down faq-chevron text-xs text-indigo-500 transition-transform duration-300"></i>
+        </div>
+        <div class="faq-answer text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+          <p class="pt-3">Every MCQ you answer incorrectly is automatically added to your personal Mistakes List along with its explanation, allowing you to re-practice weak areas before exams.</p>
+        </div>
+      </div>
+
+      <div class="faq-item glass-card rounded-2xl p-5 cursor-pointer">
+        <div class="flex items-center justify-between gap-4 font-display font-bold text-sm sm:text-base">
+          <span>Is creating a student account on Topper Hub free?</span>
+          <i class="fa-solid fa-chevron-down faq-chevron text-xs text-indigo-500 transition-transform duration-300"></i>
+        </div>
+        <div class="faq-answer text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+          <p class="pt-3">Yes, click Register to create your free student account in seconds and save your bookmarks, custom tests, and mistake history across sessions.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="reveal-on-scroll mt-16 rounded-3xl p-8 sm:p-10 bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-600 text-white text-center shadow-2xl shadow-indigo-600/25 relative overflow-hidden">
+      <div class="relative z-10 max-w-2xl mx-auto space-y-5">
+        <h3 class="font-display font-extrabold text-2xl sm:text-3xl">
+          Ready to Top Your Next Board Exam?
+        </h3>
+        <p class="text-sm sm:text-base text-indigo-100">
+          Join thousands of students practicing topic by topic with instant explanations and smart mistake tracking.
+        </p>
+        <div class="flex flex-wrap items-center justify-center gap-3.5 pt-1">
+          <button
+            type="button"
+            data-auth-action="register"
+            class="btn-ripple px-6 py-3 rounded-xl font-display font-bold text-sm bg-white text-indigo-700 hover:bg-slate-100 shadow-lg transition-all hover:-translate-y-0.5"
+          >
+            Register Free Account
+          </button>
+          <button
+            type="button"
+            data-auth-action="login"
+            class="btn-ripple px-6 py-3 rounded-xl font-display font-bold text-sm bg-slate-950/30 hover:bg-slate-950/45 text-white border border-white/30 transition-all hover:-translate-y-0.5"
+          >
+            Student Login
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 10. PROFESSIONAL FOOTER WITH TERMS & PRIVACY ==================== -->
+  <footer class="border-t border-slate-200/80 dark:border-slate-800/80 bg-white/60 dark:bg-slate-950/75 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 pb-10 border-b border-slate-200/70 dark:border-slate-800/70">
+        <div class="sm:col-span-2 space-y-3">
+          <div class="flex items-center gap-3">
+            <img
+              src="assets/images/logo.png"
+              alt="Topper Hub Logo"
+              class="w-8 h-8 object-contain"
+              onerror="this.style.display='none';"
+            />
+            <div class="brand font-display font-extrabold text-lg">
+              Topper <span>Hub</span>
+            </div>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-md leading-relaxed">
+            Board-aligned MCQ practice platform built to help students master every chapter, analyze mistakes, and excel in board and entry examinations.
+          </p>
+        </div>
+
+        <div class="space-y-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+          <div class="font-display font-bold text-sm text-slate-900 dark:text-white">Platform</div>
+          <div><a href="#features" class="hover:text-indigo-500">Features</a></div>
+          <div><a href="#boards" class="hover:text-indigo-500">Boards & Subjects</a></div>
+          <div><a href="#demo" class="hover:text-indigo-500">Live MCQ Demo</a></div>
+          <div><a href="#contributors" class="hover:text-indigo-500">Contributors</a></div>
+        </div>
+
+        <div class="space-y-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+          <div class="font-display font-bold text-sm text-slate-900 dark:text-white">Account & Legal</div>
+          <div><button type="button" data-auth-action="login" class="hover:text-indigo-500">Student Login</button></div>
+          <div><button type="button" data-auth-action="register" class="hover:text-indigo-500">Create Account</button></div>
+          <div><button type="button" data-open-terms="terms" class="hover:text-indigo-500">Terms & Conditions</button></div>
+          <div><button type="button" data-open-terms="privacy" class="hover:text-indigo-500">Privacy Policy</button></div>
+        </div>
+      </div>
+
+      <div class="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400">
+        <p>© <span id="footerYear">2026</span> Topper Hub. All rights reserved.</p>
+        <div class="flex items-center gap-4">
+          <button type="button" data-open-terms="terms" class="hover:text-indigo-500 underline-offset-4 hover:underline">Terms of Service</button>
+          <span>•</span>
+          <button type="button" data-open-terms="privacy" class="hover:text-indigo-500 underline-offset-4 hover:underline">Privacy & Data Policy</button>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==================== 11. MOUNT POINT FOR EXTERNAL LOGIN & REGISTER MODALS ==================== -->
+  <div id="authModalsContainer"></div>
+
+  <!-- ==================== 12. TERMS & CONDITIONS / PRIVACY POLICY MODAL ==================== -->
+  <div
+    id="termsModal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="termsModalTitle"
+    class="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-md"
+  >
+    <div class="modal-panel w-full max-w-2xl glass-card rounded-3xl border border-indigo-500/25 shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+      <div class="px-6 py-5 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-indigo-500/15 text-indigo-500 flex items-center justify-center text-base">
+            <i class="fa-solid fa-scale-balanced"></i>
+          </div>
+          <div>
+            <h3 id="termsModalTitle" class="font-display font-bold text-lg">Terms & Conditions</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Effective Date: November 2026 • Topper Hub Educational Platform</p>
+          </div>
+        </div>
+        <button
+          type="button"
+          id="closeTermsModalBtn"
+          aria-label="Close legal terms modal"
+          class="w-9 h-9 rounded-xl flex items-center justify-center bg-slate-200/80 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-rose-500/15 hover:text-rose-500 transition-colors"
+        >
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-5 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+        <div>
+          <h4 class="font-display font-bold text-slate-900 dark:text-white text-sm mb-1.5">1. Acceptance of Terms</h4>
+          <p>By registering for or accessing Topper Hub, you agree to comply with and be bound by these Terms & Conditions. If you do not agree with any part of these terms, please discontinue use of the platform.</p>
+        </div>
+
+        <div>
+          <h4 class="font-display font-bold text-slate-900 dark:text-white text-sm mb-1.5">2. Student Accounts & Eligibility</h4>
+          <p>You are responsible for maintaining the confidentiality of your login credentials and for all activity conducted under your account. Accounts are intended strictly for individual educational study and may not be shared, resold, or accessed via automated scraping tools.</p>
+        </div>
+
+        <div>
+          <h4 class="font-display font-bold text-slate-900 dark:text-white text-sm mb-1.5">3. Intellectual Property & Question Banks</h4>
+          <p>All multiple-choice questions, step-by-step explanations, topic taxonomies, software code, and visual branding on Topper Hub are the intellectual property of Topper Hub and its contributors. Reproduction, bulk downloading, or commercial redistribution without written authorization is strictly prohibited.</p>
+        </div>
+
+        <div>
+          <h4 class="font-display font-bold text-slate-900 dark:text-white text-sm mb-1.5">4. Educational Disclaimer</h4>
+          <p>While our academic contributors align practice questions with official examination board syllabi, Topper Hub is an independent study aid and is not officially affiliated with any government examination board.</p>
+        </div>
+
+        <div>
+          <h4 class="font-display font-bold text-slate-900 dark:text-white text-sm mb-1.5">5. Privacy & Student Data Protection</h4>
+          <p>We collect only essential account details (full name, email address, and test performance metrics such as bookmarks and mistakes lists) to personalize your learning experience. We never sell student personal information to third parties.</p>
+        </div>
+
+        <div>
+          <h4 class="font-display font-bold text-slate-900 dark:text-white text-sm mb-1.5">6. Account Suspension & Updates</h4>
+          <p>Topper Hub reserves the right to suspend accounts that violate fair-use policies or attempt to compromise platform security. We may update these terms periodically to reflect new platform features.</p>
+        </div>
+      </div>
+
+      <div class="px-6 py-4 border-t border-slate-200/80 dark:border-slate-800 bg-slate-100/60 dark:bg-slate-900/60 flex items-center justify-end gap-3">
+        <button
+          type="button"
+          id="acceptTermsBtn"
+          class="btn-ripple px-5 py-2.5 rounded-xl font-display font-bold text-xs sm:text-sm text-white bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 shadow-md"
+        >
+          I Understand & Accept
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 13. PRODUCTION UI & ANIMATION CONTROLLER ==================== -->
+  <script>
+    // 1. HIGH-ANIMATION LOGO PRELOADER
+    const preloader = document.getElementById("preloader");
+    const loaderBar = document.getElementById("loaderProgressBar");
+    const loaderPercent = document.getElementById("loaderPercentText");
+    const loaderStatus = document.getElementById("loaderStatusText");
+
+    const loadingStages = [
+      { pct: 30, text: "Loading Topper Hub Engine..." },
+      { pct: 68, text: "Syncing Board & Topic Banks..." },
+      { pct: 95, text: "Preparing Student Portal..." },
+      { pct: 100, text: "Welcome to Topper Hub!" }
+    ];
+
+    function startPreloader() {
+      let progress = 0;
+      const timer = setInterval(() => {
+        progress += Math.floor(Math.random() * 16) + 10;
+        if (progress >= 100) {
+          progress = 100;
+          clearInterval(timer);
+          loaderBar.style.width = "100%";
+          loaderPercent.textContent = "100%";
+          loaderStatus.textContent = "Welcome to Topper Hub!";
+
+          setTimeout(() => {
+            preloader.classList.add("loader-exit");
+            document.body.classList.add("app-ready");
+            triggerStatCounters();
+          }, 280);
+        } else {
+          loaderBar.style.width = `${progress}%`;
+          loaderPercent.textContent = `${progress}%`;
+          const stage = loadingStages.find((s) => progress <= s.pct);
+          if (stage) loaderStatus.textContent = stage.text;
+        }
+      }, 85);
+    }
+
+    window.addEventListener("load", startPreloader);
+
+    // 2. TERMS & CONDITIONS MODAL CONTROLLER
+    const termsModal = document.getElementById("termsModal");
+    const termsModalTitle = document.getElementById("termsModalTitle");
+    const closeTermsModalBtn = document.getElementById("closeTermsModalBtn");
+    const acceptTermsBtn = document.getElementById("acceptTermsBtn");
+
+    function openTermsModal(section = "terms") {
+      termsModalTitle.textContent =
+        section === "privacy" ? "Privacy Policy & Data Protection" : "Terms & Conditions";
+      termsModal.classList.add("is-open");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeTermsModal() {
+      termsModal.classList.remove("is-open");
+      const anyAuthOpen =
+        document.getElementById("loginModal")?.classList.contains("is-open") ||
+        document.getElementById("registerModal")?.classList.contains("is-open");
+      if (!anyAuthOpen) document.body.style.overflow = "";
+    }
+
+    document.addEventListener("click", (e) => {
+      const trigger = e.target.closest("[data-open-terms]");
+      if (trigger) {
+        e.preventDefault();
+        openTermsModal(trigger.getAttribute("data-open-terms"));
+      }
+    });
+
+    closeTermsModalBtn.addEventListener("click", closeTermsModal);
+    acceptTermsBtn.addEventListener("click", () => {
+      const termsCheckbox = document.getElementById("rTermsAgree");
+      if (termsCheckbox) termsCheckbox.checked = true;
+      closeTermsModal();
+    });
+    termsModal.addEventListener("click", (e) => {
+      if (e.target === termsModal) closeTermsModal();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && termsModal.classList.contains("is-open")) {
+        closeTermsModal();
+      }
+    });
+
+    // Mobile Drawer Toggle
+    const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+    const mobileMenu = document.getElementById("mobileMenu");
+    mobileMenuBtn.addEventListener("click", () => {
+      mobileMenu.classList.toggle("hidden");
+    });
+    document.querySelectorAll(".mobile-nav-link").forEach((link) => {
+      link.addEventListener("click", () => mobileMenu.classList.add("hidden"));
+    });
+
+    // 3. EQUAL-SIZED MOVING CONTRIBUTORS MARQUEE
+    const contributorsList = [
+      
+      {
+        name: "Ibadat Ali",
+        role: "Mathematics & Numericals Specialist",
+        bio: "Authors step-by-step conceptual & numerical solutions for Class 9–12.",
+        image: "assets/images/contributor-2.jpg",
+        fileHint: "contributor-2.jpg",
+        badge: "Mathematics",
+        gradient: "from-cyan-500 to-emerald-400"
+      },
+      {
+        name: "Muazam Abbas",
+        role: "Full-Stack Platform Architect & Physics Content Lead",
+        bio: "Builds the custom test engine, instant scoring, and cloud sync APIs.",
+        image: "assets/images/contributor-3.jpg",
+        fileHint: "contributor-3.jpg",
+        badge: "Engineering",
+        gradient: "from-violet-500 to-indigo-400"
+      },
+      {
+        name: "Zeeshan Haider",
+        role: "Biology & MDCAT Content Lead",
+        bio: "Curates high-yield Biology & entry-test MCQ banks with textbook references.",
+        image: "assets/images/contributor-4.jpg",
+        fileHint: "contributor-4.jpg",
+        badge: "Biology",
+        gradient: "from-emerald-500 to-teal-400"
+      },
+      {
+        name: "Shahab Wazir",
+        role: "Chemistry & Organic Reactions Lead",
+        bio: "Designs reaction-mechanism drills and topic-wise revision checkpoints.",
+        image: "assets/images/contributor-5.jpg",
+        fileHint: "contributor-5.jpg",
+        badge: "Chemistry",
+        gradient: "from-amber-500 to-rose-400"
+      }
+    ];
+
+    function renderContributorsMarquee() {
+      const track = document.getElementById("contributorsMarqueeTrack");
+      if (!track) return;
+
+      const items = [...contributorsList, ...contributorsList];
+      track.innerHTML = items
+        .map(
+          (c) => `
+          <article class="w-72 h-[310px] shrink-0 glass-card rounded-3xl p-6 flex flex-col items-center justify-between text-center border border-indigo-500/20 hover:border-indigo-500/50 transition-all hover:-translate-y-1">
+            <div class="flex flex-col items-center">
+              <div class="w-24 h-24 rounded-2xl p-0.5 bg-gradient-to-tr ${c.gradient} shadow-lg mb-4 overflow-hidden">
+                <div class="w-full h-full rounded-[14px] bg-slate-900 overflow-hidden flex items-center justify-center">
+                  <img
+                    src="${c.image}"
+                    alt="${c.name}"
+                    class="w-full h-full object-cover"
+                    onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');"
+                  />
+                  <div class="hidden w-full h-full flex flex-col items-center justify-center bg-slate-900 text-indigo-300 px-2">
+                    <i class="fa-solid fa-user-check text-xl mb-1"></i>
+                    <span class="text-[10px] font-mono text-cyan-400 break-all">${c.fileHint}</span>
+                  </div>
+                </div>
+              </div>
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 mb-2">
+                ${c.badge}
+              </span>
+              <h3 class="font-display font-bold text-base text-slate-900 dark:text-white leading-snug">
+                ${c.name}
+              </h3>
+              <div class="text-xs font-semibold text-indigo-600 dark:text-cyan-400 mt-0.5">
+                ${c.role}
+              </div>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+              ${c.bio}
+            </p>
+          </article>
+        `
+        )
+        .join("");
+    }
+
+    renderContributorsMarquee();
+
+    // 4. BOARD & SUBJECT STREAM FILTER
+    document.querySelectorAll(".board-filter-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".board-filter-btn").forEach((b) => {
+          b.classList.remove("bg-indigo-600", "text-white", "shadow-md", "shadow-indigo-600/25");
+          b.classList.add("glass-card");
+        });
+        btn.classList.add("bg-indigo-600", "text-white", "shadow-md", "shadow-indigo-600/25");
+        btn.classList.remove("glass-card");
+
+        const filter = btn.dataset.filter;
+        document.querySelectorAll(".subject-card").forEach((card) => {
+          const streams = card.dataset.stream.split(" ");
+          if (filter === "all" || streams.includes(filter)) {
+            card.style.display = "flex";
+          } else {
+            card.style.display = "none";
+          }
+        });
+      });
+    });
+
+    // 5. INTERACTIVE MULTI-QUESTION LIVE MCQ DEMO
+    const demoQuestions = [
+      {
+        topic: "Physics • Class 12 • Electrostatics",
+        question: "If the distance between two point charges is doubled, the electrostatic force between them becomes:",
+        options: [
+          { label: "A) Half of original force", correct: false },
+          { label: "B) One-fourth (1/4) of original force", correct: true },
+          { label: "C) Double of original force", correct: false },
+          { label: "D) Four times original force", correct: false }
+        ],
+        explanation: "By Coulomb's Law (F ∝ 1/r²), doubling the distance (2r) reduces electrostatic force by (1/2)² = 1/4."
+      },
+      {
+        topic: "Biology • Class 11 • Cell Structure",
+        question: "Which organelle is known as the powerhouse of the cell because it synthesizes ATP via aerobic respiration?",
+        options: [
+          { label: "A) Golgi Apparatus", correct: false },
+          { label: "B) Ribosome", correct: false },
+          { label: "C) Mitochondrion", correct: true },
+          { label: "D) Lysosome", correct: false }
+        ],
+        explanation: "Mitochondria generate most of the cell's supply of adenosine triphosphate (ATP) through oxidative phosphorylation."
+      },
+      {
+        topic: "Chemistry • Class 11 • Atomic Structure",
+        question: "What is the maximum number of electrons that can be accommodated in the 'd' subshell?",
+        options: [
+          { label: "A) 6 electrons", correct: false },
+          { label: "B) 10 electrons", correct: true },
+          { label: "C) 14 electrons", correct: false },
+          { label: "D) 2 electrons", correct: false }
+        ],
+        explanation: "The 'd' subshell contains 5 orbitals, and each orbital holds a maximum of 2 electrons (5 × 2 = 10 electrons)."
+      }
+    ];
+
+    let currentDemoIdx = 0;
+    let bookmarkedSet = new Set();
+    let mistakeSet = new Set();
+
+    function renderDemoQuestion() {
+      const q = demoQuestions[currentDemoIdx];
+      document.getElementById("demoQuestionTag").textContent = `Question ${currentDemoIdx + 1} of ${demoQuestions.length}`;
+      document.getElementById("demoTopicLabel").textContent = q.topic;
+      document.getElementById("demoQuestionText").textContent = q.question;
+
+      const explanationEl = document.getElementById("demoExplanation");
+      explanationEl.classList.add("hidden");
+      explanationEl.innerHTML = `<i class="fa-solid fa-circle-check mr-1.5"></i><strong>Explanation:</strong> ${q.explanation}`;
+
+      const bookmarkBtn = document.getElementById("demoBookmarkBtn");
+      const isBookmarked = bookmarkedSet.has(currentDemoIdx);
+      bookmarkBtn.classList.toggle("text-amber-400", isBookmarked);
+      bookmarkBtn.innerHTML = isBookmarked
+        ? '<i class="fa-solid fa-bookmark"></i><span>Bookmarked</span>'
+        : '<i class="fa-regular fa-bookmark"></i><span>Bookmark</span>';
+
+      const optionsBox = document.getElementById("demoMcqOptions");
+      optionsBox.innerHTML = "";
+      q.options.forEach((opt) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "text-left px-4 py-3 rounded-2xl text-xs sm:text-sm font-medium bg-slate-100/90 dark:bg-slate-800/85 hover:border-indigo-500/40 border border-transparent transition-all";
+        btn.textContent = opt.label;
+        btn.addEventListener("click", () => {
+          Array.from(optionsBox.children).forEach((b) => {
+            b.classList.remove("border-emerald-500", "bg-emerald-500/15", "border-rose-500", "bg-rose-500/15");
+          });
+          if (opt.correct) {
+            btn.classList.add("border-emerald-500", "bg-emerald-500/15");
+            explanationEl.classList.remove("hidden");
+          } else {
+            btn.classList.add("border-rose-500", "bg-rose-500/15");
+            mistakeSet.add(currentDemoIdx);
+            document.getElementById("demoMistakeCount").textContent = mistakeSet.size;
+            explanationEl.classList.remove("hidden");
+          }
+        });
+        optionsBox.appendChild(btn);
+      });
+    }
+
+    document.getElementById("demoBookmarkBtn").addEventListener("click", () => {
+      if (bookmarkedSet.has(currentDemoIdx)) bookmarkedSet.delete(currentDemoIdx);
+      else bookmarkedSet.add(currentDemoIdx);
+      document.getElementById("demoBookmarkCount").textContent = bookmarkedSet.size;
+      renderDemoQuestion();
+    });
+
+    document.getElementById("nextDemoQBtn").addEventListener("click", () => {
+      currentDemoIdx = (currentDemoIdx + 1) % demoQuestions.length;
+      renderDemoQuestion();
+    });
+
+    renderDemoQuestion();
+
+    // 6. FAQ ACCORDION
+    document.querySelectorAll(".faq-item").forEach((item) => {
+      item.addEventListener("click", () => {
+        item.classList.toggle("open");
+      });
+    });
+
+    // 7. SCROLL REVEAL & ANIMATED COUNTERS
+    const revealObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            revealObserver.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.12 }
+    );
+    document.querySelectorAll(".reveal-on-scroll").forEach((el) => revealObserver.observe(el));
+
+    function triggerStatCounters() {
+      document.querySelectorAll(".stat-counter").forEach((el) => {
+        const target = parseInt(el.dataset.target, 10);
+        const suffix = el.dataset.suffix || "";
+        let current = 0;
+        const step = Math.max(1, Math.ceil(target / 45));
+        const counterTimer = setInterval(() => {
+          current += step;
+          if (current >= target) {
+            current = target;
+            clearInterval(counterTimer);
+          }
+          el.textContent = current.toLocaleString() + suffix;
+        }, 28);
+      });
+    }
+
+    // 8. THEME TOGGLE, FOOTER YEAR & RIPPLE FEEDBACK
+    document.getElementById("footerYear").textContent = new Date().getFullYear();
+
+    const themeToggle = document.getElementById("themeToggle");
+    const themeIcon = document.getElementById("themeIcon");
+    themeToggle.addEventListener("click", () => {
+      const isDark = document.documentElement.classList.toggle("dark");
+      themeIcon.className = isDark ? "fa-solid fa-sun text-sm" : "fa-solid fa-moon text-sm";
+    });
+
+    document.addEventListener("click", (e) => {
+      const btn = e.target.closest(".btn-ripple");
+      if (!btn) return;
+      const circle = document.createElement("span");
+      const diameter = Math.max(btn.clientWidth, btn.clientHeight);
+      const rect = btn.getBoundingClientRect();
+      circle.style.width = circle.style.height = `${diameter}px`;
+      circle.style.left = `${e.clientX - rect.left - diameter / 2}px`;
+      circle.style.top = `${e.clientY - rect.top - diameter / 2}px`;
+      circle.classList.add("ripple-circle");
+      btn.appendChild(circle);
+      setTimeout(() => circle.remove(), 600);
+    });
+
+    // 9. AMBIENT CONSTELLATION PARTICLE CANVAS
+    const canvas = document.getElementById("bgParticleCanvas");
+    const ctx = canvas.getContext("2d");
+    let particles = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    for (let i = 0; i < 36; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.4,
+        r: Math.random() * 2 + 1
+      });
+    }
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(99, 102, 241, 0.45)";
+        ctx.fill();
+
+        for (let j = i + 1; j < particles.length; j++) {
+          const p2 = particles[j];
+          const dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+          if (dist < 130) {
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.strokeStyle = `rgba(56, 189, 248, ${0.14 * (1 - dist / 130)})`;
+            ctx.stroke();
+          }
+        }
+      }
+      requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+  </script>
+
+  <!-- Load External Modals First, Then Backend Auth Module -->
+  <script type="module" src="js/modals.js"></script>
+  <script type="module" src="js/auth.js"></script>
+</body>
+</html>
