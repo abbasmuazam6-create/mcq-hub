@@ -87,6 +87,17 @@ export function pathOf(id) {
   return out;
 }
 
+// Dynamically aggregate question counts across all descendant nodes in the hierarchy
+export function getQuestionCount(nodeId) {
+  const node = getNode(nodeId);
+  if (!node) return 0;
+  const kids = kidsOf(nodeId);
+  if (kids.length === 0) {
+    return node.qCount || 0;
+  }
+  return kids.reduce((sum, kid) => sum + getQuestionCount(kid.id), 0);
+}
+
 /* ================== questions ================== */
 // Cache-first fetch by node. Falls back to Firestore persistent cache,
 // then network. Returns a shuffled array ready for a quiz.

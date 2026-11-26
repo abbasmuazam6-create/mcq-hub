@@ -1,4 +1,4 @@
-// js/admin/views/syllabus.js
+// js/admin/views/syllabus.js — Upgraded Syllabus Manager with Board Logo Support
 import { DataTable } from "../DataTable.js";
 import { makeNodesConfig } from "../configs/nodes.js";
 import { getSyllabus, kidsOf, getNode } from "../../core/store.js";
@@ -49,13 +49,38 @@ function loadTable() {
   // Build config with real scope so "+ Add" knows where to insert.
   const cfg = makeNodesConfig(currentLevel, { parentId: currentParentId });
 
+  // Dynamically add Logo URL field when creating or editing a Board
+  if (currentLevel === "board") {
+    if (cfg.fields && !cfg.fields.some((f) => f.key === "logoUrl")) {
+      cfg.fields.push({
+        key: "logoUrl",
+        label: "Logo URL (ImgBB Direct Link)",
+        type: "text",
+        placeholder: "https://i.ibb.co/..."
+      });
+    }
+  }
+
   // Row click drills to children if a next level exists.
   const idx = LEVELS.indexOf(currentLevel);
   if (idx < LEVELS.length - 1) {
     const nextLevel = LEVELS[idx + 1];
     cfg.columns[1] = {
       key: "name", label: "Name", sortable: true, searchable: true,
-      render: (r) => `<a href="javascript:void 0" data-drill="${esc(r.id)}" data-next="${nextLevel}"><b>${esc(r.name)}</b> ›</a>`,
+      render: (r) => `
+        <div style="display:flex; align-items:center; gap:10px;">
+          ${currentLevel === "board" && r.logoUrl ? `<img src="${esc(r.logoUrl)}" alt="Logo" style="width:28px; height:28px; object-fit:contain; border-radius:6px; background:#f1f5f9;" />` : ""}
+          <a href="javascript:void 0" data-drill="${esc(r.id)}" data-next="${nextLevel}"><b>${esc(r.name)}</b> ›</a>
+        </div>`,
+    };
+  } else if (currentLevel === "board") {
+    cfg.columns[1] = {
+      key: "name", label: "Name", sortable: true, searchable: true,
+      render: (r) => `
+        <div style="display:flex; align-items:center; gap:10px;">
+          ${r.logoUrl ? `<img src="${esc(r.logoUrl)}" alt="Logo" style="width:28px; height:28px; object-fit:contain; border-radius:6px; background:#f1f5f9;" />` : ""}
+          <b>${esc(r.name)}</b>
+        </div>`,
     };
   }
 

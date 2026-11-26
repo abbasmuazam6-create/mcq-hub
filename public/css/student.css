@@ -208,3 +208,256 @@ button.icon.on{color:#f59e0b;transform:scale(1.2)}
 @keyframes rise{from{transform:scaleY(0)}}
 .soon{display:grid;grid-template-columns:repeat(auto-fit,minmax(12rem,1fr));gap:.8rem}
 .soon div{padding:1.1rem;border:2px dashed var(--line);border-radius:var(--r);color:var(--muted);text-align:center;font-size:.88rem;font-weight:600}
+/* --- Modern Glowing Score Pod --- */
+.modern-score-pod {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  margin: 0 auto;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-app);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.15);
+  animation: podFloat 4s ease-in-out infinite;
+}
+
+.modern-score-pod.success {
+  border: 2px solid rgba(16, 185, 129, 0.4);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(5, 150, 105, 0.15));
+}
+
+.modern-score-pod.warning {
+  border: 2px solid rgba(245, 158, 11, 0.4);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(217, 119, 6, 0.15));
+}
+
+.modern-score-pod.danger {
+  border: 2px solid rgba(239, 68, 68, 0.4);
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(220, 38, 38, 0.15));
+}
+
+.pod-glow-fx {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  opacity: 0.5;
+  filter: blur(12px);
+  z-index: -1;
+  animation: podPulse 3s ease-in-out infinite;
+}
+
+.modern-score-pod.success .pod-glow-fx { background: rgba(16, 185, 129, 0.4); }
+.modern-score-pod.warning .pod-glow-fx { background: rgba(245, 158, 11, 0.4); }
+.modern-score-pod.danger .pod-glow-fx { background: rgba(239, 68, 68, 0.4); }
+
+.pod-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.pod-number {
+  font-size: 2.2rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--text-main, #0f172a);
+}
+
+.pod-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.6;
+  margin-top: 4px;
+}
+
+@keyframes podFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes podPulse {
+  0%, 100% { transform: scale(0.95); opacity: 0.4; }
+  50% { transform: scale(1.05); opacity: 0.8; }
+}
+
+.inline-icon {
+  width: 20px;
+  height: 20px;
+  vertical-align: middle;
+  display: inline-block;
+  stroke: currentColor;
+  flex-shrink: 0;
+}
+
+.inline-icon.lg {
+  width: 36px;
+  height: 36px;
+}
+/* ==================== 3D BUTTONS ==================== */
+.btn {
+  border-radius: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.12s ease, filter 0.12s ease;
+  box-shadow: 0 6px 0 0 rgba(79, 70, 229, 0.45), 0 10px 22px -5px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.btn:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 0 0 rgba(79, 70, 229, 0.55), 0 16px 26px -5px rgba(0, 0, 0, 0.2);
+}
+
+.btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 0 0 rgba(79, 70, 229, 0.7), 0 4px 10px -2px rgba(0, 0, 0, 0.2);
+}
+
+.btn.ghost {
+  box-shadow: 0 4px 0 0 var(--line), 0 6px 14px -4px rgba(0, 0, 0, 0.08);
+}
+.btn.ghost:hover {
+  box-shadow: 0 6px 0 0 var(--brand), 0 8px 18px -4px rgba(0, 0, 0, 0.12);
+}
+.btn.ghost:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 0 var(--brand), 0 2px 6px -2px rgba(0, 0, 0, 0.1);
+}
+
+
+/* ==================== HIGH-VISIBILITY KPI / STAT CARDS ==================== */
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+.stat-row.four {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.stat {
+  position: relative;
+  overflow: hidden;
+  padding: 1.25rem 1.2rem 1.2rem 1.4rem;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 1.25rem;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.08), inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+/* Light & Dark Mode Contrast Enhancements */
+.dark .stat {
+  background: rgba(15, 23, 42, 0.88);
+  border: 1px solid rgba(99, 102, 241, 0.28);
+  box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.6), inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+}
+
+.stat:hover {
+  transform: translateY(-3px);
+  border-color: var(--c, var(--brand));
+  box-shadow: 0 18px 40px -10px rgba(0, 0, 0, 0.18);
+}
+
+.stat::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  background: var(--c);
+  border-radius: 4px 0 0 4px;
+}
+
+.stat b {
+  display: block;
+  font-size: 1.9rem;
+  font-weight: 800;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.dark .stat b {
+  color: #f8fafc !important;
+}
+
+.stat span {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 0.3rem;
+  display: block;
+}
+
+.dark .stat span {
+  color: #94a3b8 !important;
+}
+
+@media (max-width: 700px) {
+  .stat-row.four {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+/* --- Flat Moving Animated Welcome Banner --- */
+@keyframes bannerGradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.welcome-banner-animated {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed, #06b6d4, #4f46e5);
+  background-size: 300% 300%;
+  animation: bannerGradientShift 10s ease infinite;
+  box-shadow: 0 16px 35px -10px rgba(79, 70, 229, 0.35);
+}
+
+/* --- 3D Cards with Animated Border Glow Shadows --- */
+@keyframes borderGlowPulse {
+  0%, 100% { border-color: rgba(99, 102, 241, 0.3); box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.12), 0 0 15px -3px rgba(99, 102, 241, 0.15); }
+  50% { border-color: rgba(6, 182, 212, 0.5); box-shadow: 0 14px 35px -10px rgba(0, 0, 0, 0.18), 0 0 22px 0px rgba(6, 182, 212, 0.3); }
+}
+
+.dark .card-3d {
+  animation: borderGlowPulse 6s ease-in-out infinite;
+}
+
+.card-3d {
+  transform: translateY(0);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+.card-3d:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 35px -8px rgba(0, 0, 0, 0.18), 0 10px 12px -5px rgba(0, 0, 0, 0.12);
+}
+
+/* --- 3D Tactile Buttons --- */
+.btn-3d {
+  position: relative;
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease;
+  box-shadow: 0 5px 0 0 rgba(79, 70, 229, 0.45), 0 10px 20px -5px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+.btn-3d:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 0 0 rgba(79, 70, 229, 0.55), 0 14px 24px -5px rgba(0, 0, 0, 0.25);
+}
+
+.btn-3d:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 0 0 rgba(79, 70, 229, 0.7), 0 4px 10px -2px rgba(0, 0, 0, 0.2);
+}

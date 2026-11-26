@@ -1,6 +1,6 @@
 // js/admin/configs/questions.js — Auto-detection & highlighting for double/matching MCQs
 import {
-  db, doc, collection, writeBatch, increment, updateDoc,
+  db, doc, collection, writeBatch, increment, updateDoc, getDocs,
 } from "../../core/firebase.js";
 import { esc, toast } from "../../core/dom.js";
 import { getNode, invalidateQuestions } from "../../core/store.js";
@@ -8,23 +8,154 @@ import { pickerHTML, mountPicker } from "../picker.js";
 
 const LETTERS = "ABCDE";
 
-// Helper to automatically detect if a question is a double / statement-based MCQ
-function detectDoubleMCQ(r) {
-  if (r.isDouble || r.doubleQuestion) return true;
-  const text = String(r.text || "").toLowerCase();
-  
-  // Detects multi-statement markers (Statement I, Statement II, Assertion, Reason, etc.)
-  const hasSubStatements = 
-    (text.includes("statement") && (text.includes("i") || text.includes("1"))) ||
-    text.includes("assertion") || 
-    text.includes("reason") ||
-    text.includes("both statements") ||
-    (text.match(/\([1-2iv]+\)/g) || []).length >= 2;
+// ---------------------------------------------------------------------------
+// Return a diagnostic report explaining WHY a question is (or isn't) double.
+// Used by the scan and by the "why not detected?" tooltip.
+// ---------------------------------------------------------------------------
+export function explainDoubleMCQ(r) {
+  if (!r) return { isDouble: false, reasons: ["no row"], fields: {} };
+  if (r.isDouble === true || r.doubleQuestion === true) {
+    return { isDouble: true, reasons: ["stored isDouble flag"], fields: {} };
+  }
 
-  // Detects if prompt text is exceptionally long or complex
-  const isLong = text.length > 320;
-  
-  return hasSubStatements || isLong;
+  const text = String(r.text ?? r.question ?? r.prompt ?? "");
+  const lower = text.toLowerCase();
+  const opts = (r.options || []).map((o) => String(o ?? "").toLowerCase());
+
+  const hits = [];
+  const miss = [];
+
+  const promptChecks = [
+    ["statement", /\bstatement\b/i, lower],
+    ["assertion", /\bassertion\b/i, lower],
+    ["reason", /\breason\b/i, lower],
+    ["match the following", /\bmatch\s+the\s+following\b/i, lower],
+    ["consider the following", /\bconsider\s+the\s+following\b/i, lower],
+    ["read the following", /\bread\s+the\s+following\b/i, lower],
+    ["which of the following statements", /\bwhich\s+of\s+the\s+following\s+(statements?|pairs?|combinations?)\b/i, lower],
+    ["which is true/correct", /\bwhich\s+is\s+(true|false|correct)\b/i, lower],
+  ];
+
+  for (const [label, re, hay] of promptChecks) {
+    if (re.test(hay)) hits.push(`prompt: ${label}`);
+    else miss.push(`prompt: ${label}`);
+  }
+
+  const optionLabels = [
+    ["both", /\bboth\b/],
+    ["neither", /\bneither\b/],
+    ["only i/ii", /\bonly\s*(i|ii|iii|1|2|3|a|b|c|one|two)\b/],
+    ["all of the above", /\ball\s+of\s+(the\s+)?(above|these)/],
+    ["none of the above", /\bnone\s+of\s+(the\s+)?(above|these)/],
+    ["statement/assertion/reason in option", /\b(?:statement|assertion|reason)\b/],
+  ];
+  for (const [label, re] of optionLabels) {
+    const found = opts.some((o) => re.test(o));
+    if (found) hits.push(`option: ${label}`);
+    else miss.push(`option: ${label}`);
+  }
+
+  const hasNewlines = /\n/.test(text);
+  const longText = text.length > 260;
+  const romanPairs = /\((i{1,3}|1|2)\)/gi.test(text);
+  if (hasNewlines) hits.push("structural: has newlines");
+  if (longText) hits.push(`structural: long (${text.length} chars)`);
+  if (romanPairs) hits.push("structural: has (i)/(ii) markers");
+
+  return {
+    isDouble: hits.length > 0,
+    reasons: hits,
+    misses: miss,
+    fields: {
+      textLen: text.length,
+      optionCount: opts.length,
+      textSample: text.slice(0, 140),
+      optionSamples: opts.slice(0, 4).map((o) => o.slice(0, 80)),
+    },
+  };
+}
+
+// Boolean detection — uses the same logic as explainDoubleMCQ.
+export function detectDoubleMCQ(r) {
+  if (!r) return false;
+  if (r.isDouble === true || r.doubleQuestion === true) return true;
+
+  const text = String(r.text ?? r.question ?? r.prompt ?? "");
+  const lower = text.toLowerCase();
+  const opts = (r.options || []).map((o) => String(o ?? "").toLowerCase());
+
+  const promptMarkers =
+    /\bstatement\b/i.test(lower) ||
+    /\bassertion\b/i.test(lower) ||
+    /\breason\b/i.test(lower) ||
+    /\bmatch\s+the\s+following\b/i.test(lower) ||
+    /\bconsider\s+the\s+following\b/i.test(lower) ||
+    /\bread\s+the\s+following\b/i.test(lower) ||
+    /\bwhich\s+of\s+the\s+following\s+(statements?|pairs?|combinations?|is\/are|are\/is)\b/i.test(lower) ||
+    /\bwhich\s+is\s+(true|false|correct)\b/i.test(lower);
+
+  const optionMarkers = opts.some((o) =>
+    /\bboth\b/.test(o) ||
+    /\bneither\b/.test(o) ||
+    /\bonly\s*(i|ii|iii|1|2|3|a|b|c|one|two)\b/.test(o) ||
+    /\ball\s+of\s+(the\s+)?(above|these)/.test(o) ||
+    /\bnone\s+of\s+(the\s+)?(above|these)/.test(o) ||
+    /\b(?:statement|assertion|reason)\b/.test(o)
+  );
+
+  const hasNewlines = /\n/.test(text);
+  const longText = text.length > 260;
+  const romanPairs = /\((i{1,3}|1|2)\)/gi.test(text);
+
+  return promptMarkers || optionMarkers || hasNewlines || longText || romanPairs;
+}
+
+// Scan the entire questions collection and stamp isDouble:true on every match.
+// Returns { scanned, tagged, skipped, samples } — samples is a diagnostic list
+// of the first 5 untagged questions with their text snippet, so you can see
+// what the heuristic is looking at.
+export async function scanAllQuestionsForDouble({ onProgress } = {}) {
+  const result = { scanned: 0, tagged: 0, skipped: 0, samples: [] };
+  try {
+    const snap = await getDocs(collection(db, "questions"));
+    const toTag = [];
+    snap.forEach((d) => {
+      result.scanned++;
+      const data = d.data();
+      const already = data.isDouble === true || data.doubleQuestion === true;
+      if (already) { result.skipped++; return; }
+      if (detectDoubleMCQ(data)) {
+        toTag.push(d.id);
+      } else if (result.samples.length < 5) {
+        result.samples.push({
+          id: d.id,
+          text: String(data.text || data.question || data.prompt || "").slice(0, 100),
+          opts: (data.options || []).slice(0, 3).map((o) => String(o || "").slice(0, 40)),
+        });
+      }
+    });
+    if (!toTag.length) {
+      onProgress?.({ ...result, done: true });
+      return result;
+    }
+    const CHUNK = 400;
+    const now = Date.now();
+    for (let i = 0; i < toTag.length; i += CHUNK) {
+      const chunk = toTag.slice(i, i + CHUNK);
+      const b = writeBatch(db);
+      for (const id of chunk) {
+        b.update(doc(db, "questions", id), { isDouble: true, updatedAt: now });
+      }
+      await b.commit();
+      result.tagged += chunk.length;
+      onProgress?.({ ...result, done: false });
+    }
+    onProgress?.({ ...result, done: true });
+    return result;
+  } catch (e) {
+    console.error("[scan] failed:", e);
+    throw e;
+  }
 }
 
 export function makeQuestionsConfig({ scopeId, scopeLevel }) {
@@ -48,14 +179,17 @@ export function makeQuestionsConfig({ scopeId, scopeLevel }) {
     ],
     columns: [
       { type: "checkbox" },
-      { 
-        key: "text", 
-        label: "Question", 
+      {
+        key: "text",
+        label: "Question",
         sortable: false,
         render: (r) => {
           const isDouble = detectDoubleMCQ(r);
+          const wrapperStyle = isDouble
+            ? "background:rgba(245,158,11,0.14);border-left:3px solid #f59e0b;padding:6px 8px;border-radius:6px;"
+            : "";
           return `
-            <div class="space-y-1">
+            <div style="${wrapperStyle}">
               <div class="font-medium text-slate-900 dark:text-white line-clamp-2">${esc((r.text || "").slice(0, 160)) + ((r.text || "").length > 160 ? "…" : "")}</div>
               ${isDouble ? `<span class="badge warn text-[10px]"><i class="fa-solid fa-clone mr-1"></i> Double / Statement MCQ</span>` : ""}
             </div>
@@ -117,7 +251,6 @@ export async function openQuestionDialog(row, scope, dt) {
         </div>
       ` : ""}
 
-      <!-- Single Entry Form -->
       <form id="qForm" class="space-y-3">
         <div>
           <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Question Prompt</label>
@@ -178,12 +311,11 @@ export async function openQuestionDialog(row, scope, dt) {
         </div>
       </form>
 
-      <!-- Batch Import Pane -->
       <div id="batchPane" class="space-y-3 hidden">
         <div>
           <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Paste Questions Block</label>
           <p class="text-[11px] text-slate-400 mb-1.5">Statement-based or double MCQs pasted here will be auto-flagged.</p>
-          <textarea id="batchText" rows="7" placeholder="Statement I: Mitochondria produce ATP.&#10;Statement II: Chloroplasts perform photolysis.&#10;A) Both I and II are correct&#10;B) Only I is correct&#10;Ans: A" class="w-full p-2.5 rounded-lg border border-slate-300 dark:border-white/10 bg-slate-50 dark:bg-white/[0.03] text-slate-900 dark:text-white font-mono text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+          <textarea id="batchText" rows="7" placeholder="1. Statement I: Mitochondria produce ATP.&#10;Statement II: Chloroplasts perform photolysis.&#10;A) Both I and II are correct&#10;B) Only I is correct&#10;Ans: A&#10;2. What is DNA?&#10;A) Genetic material&#10;B) Lipid&#10;Ans: A" class="w-full p-2.5 rounded-lg border border-slate-300 dark:border-white/10 bg-slate-50 dark:bg-white/[0.03] text-slate-900 dark:text-white font-mono text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
         </div>
         <div class="flex items-center justify-end gap-2 pt-2.5 border-t border-slate-200/80 dark:border-white/10">
           <button type="button" onclick="document.getElementById('dlg').close()" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300">
@@ -219,7 +351,6 @@ export async function openQuestionDialog(row, scope, dt) {
     };
   }
 
-  // Live auto-check listener as user types prompt text
   const textInput = qForm.querySelector("textarea[name='text']");
   const doubleCheckbox = qForm.querySelector("input[name='isDouble']");
   if (textInput && doubleCheckbox) {
@@ -290,50 +421,85 @@ export async function openQuestionDialog(row, scope, dt) {
       const rawText = dlg.querySelector("#batchText")?.value.trim();
       if (!rawText) return toast("Please paste questions first.", "warn");
 
-      const blocks = rawText.split(/\n\s*\n/).map((b) => b.trim()).filter(Boolean);
+      const blocks = rawText
+        .split(/(?:\r?\n\s*){2,}|(?=\r?\n\s*(?:Q\s*\d+|\d+)\s*[).:\-]\s)/i)
+        .map((b) => b.trim())
+        .filter(Boolean);
+
       const parsed = [];
 
       for (const block of blocks) {
-        const lines = block.split("\n").map((l) => l.trim()).filter(Boolean);
+        const lines = block.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
         if (lines.length < 3) continue;
 
         const qLines = [];
         const options = [];
-        let correct = 0;
+        let correct = -1;
         let explanation = "";
 
-        for (const line of lines) {
-          const optMatch = line.match(/^([A-Ea-e])[).:\-]\s*(.+)$/);
-          const ansMatch = line.match(/^(?:Ans|Answer|Correct)\s*[:\-]?\s*([A-Ea-e])/i);
-          const expMatch = line.match(/^(?:Exp|Explanation)\s*[:\-]\s*(.+)$/i);
+        for (const rawLine of lines) {
+          let line = rawLine;
 
-          if (ansMatch) {
-            const idx = LETTERS.indexOf(ansMatch[1].toUpperCase());
+          const inlineAns = line.match(/\b(?:Ans|Answer|Correct(?:\s*Answer)?)\s*[:\-]?\s*([A-Ea-e])\b/i);
+          if (inlineAns) {
+            const idx = LETTERS.indexOf(inlineAns[1].toUpperCase());
             if (idx !== -1) correct = idx;
-          } else if (expMatch) {
-            explanation = expMatch[1].trim();
-          } else if (optMatch) {
+            line = line.replace(inlineAns[0], "").trim();
+          }
+
+          const inlineExp = line.match(/\b(?:Exp|Explanation)\s*[:\-]\s*(.+)$/i);
+          if (inlineExp) {
+            explanation = inlineExp[1].trim();
+            line = line.replace(inlineExp[0], "").trim();
+          }
+
+          const ansOnly = line.match(/^(?:Ans|Answer|Correct(?:\s*Answer)?)\s*[:\-]?\s*([A-Ea-e])\s*$/i);
+          if (ansOnly) {
+            const idx = LETTERS.indexOf(ansOnly[1].toUpperCase());
+            if (idx !== -1) correct = idx;
+            continue;
+          }
+
+          const expOnly = line.match(/^(?:Exp|Explanation)\s*[:\-]\s*(.+)$/i);
+          if (expOnly) {
+            explanation = expOnly[1].trim();
+            continue;
+          }
+
+          if (!line) continue;
+
+          const optMatch = line.match(/^\(?([A-Ea-e])[).:\-]\s*(.+)$/);
+          if (optMatch) {
             options.push(optMatch[2].trim());
-          } else if (options.length === 0) {
-            qLines.push(line.replace(/^(?:Q?\d+[).:\-]\s*)/i, ""));
+            continue;
+          }
+
+          if (options.length === 0) {
+            qLines.push(line.replace(/^(?:Q\s*\d+[).:\-]\s*|\d+[).:\-]\s*)/i, "").trim());
+          } else {
+            options[options.length - 1] += " " + line;
           }
         }
 
         const text = qLines.join(" ").trim();
-        if (text && options.length >= 2) {
-          const isDouble = detectDoubleMCQ({ text, options });
-          parsed.push({
-            text,
-            options,
-            correct: Math.min(correct, options.length - 1),
-            explanation,
-            isDouble,
-          });
+        if (!text || options.length < 2) continue;
+
+        if (correct < 0) {
+          console.warn(`[batch] No "Ans:" line found for: "${text.slice(0, 80)}…" — defaulting to A`);
+          correct = 0;
         }
+
+        parsed.push({
+          text,
+          options,
+          correct: Math.min(correct, options.length - 1),
+          explanation,
+          isDouble: detectDoubleMCQ({ text, options }),
+        });
       }
 
       if (!parsed.length) {
-        return toast("Could not parse valid MCQs. Check format (A) B) C) and Ans: X).", "bad");
+        return toast("Could not parse any MCQs. Make sure each question has options (A) B) …) and an Ans: X line.", "bad");
       }
 
       btnRunBatch.disabled = true;

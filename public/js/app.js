@@ -10,30 +10,74 @@ import {
 const view = $("#view");
 const letters = "ABCDE";
 let ctx, IDX;
-let session = null;          // the quiz currently in progress
+let session = null;
 let timer = null;
-let lastResult = null;       // result of the attempt just finished (avoids a re-read)
+let lastResult = null;
 let currentResult = null;
 const marks = { bm: new Map(), wrong: new Map() };
 let marksReady = Promise.resolve();
+
+// Crisp vector icons for UI boards, navigation, and feedback states
+const ICONS = {
+  home: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
+  custom: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>`,
+  leaderboard: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>`,
+  weak: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 7-8.5 8.5-5-5L2 17"/><polyline points="16 7 22 7 22 13"/></svg>`,
+  history: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+  bookmarks: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
+  wrong: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`,
+  board: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10M6 10h10"/></svg>`,
+  sun: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>`,
+  moon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`
+};
+
+const NAV_DEF = [
+  { r: "home", l: "Dashboard", i: ICONS.home, c: "#6366f1" },
+  { r: "custom", l: "Custom Test", i: ICONS.custom, c: "#ec4899" },
+  { r: "history", l: "History", i: ICONS.history, c: "#3b82f6" },
+  { r: "bookmarks", l: "Bookmarks", i: ICONS.bookmarks, c: "#8b5cf6" },
+  { r: "wrong", l: "Mistakes Bank", i: ICONS.wrong, c: "#ef4444" },
+];
 
 init();
 
 async function init() {
   ctx = await requireUser();
   $("#who").textContent = ctx.profile.name || ctx.user.email;
-  if (["admin", "teacher"].includes(ctx.profile.role)) $("#adminLink").hidden = false;
-  $("#logout").onclick = logout;
+  if (["admin", "teacher"].includes(ctx.profile.role)) {
+    const adminLink = $("#adminLink") || document.querySelector("[data-admin]");
+    if (adminLink) adminLink.hidden = false;
+  }
+  
+  const logoutBtn = $("#logout") || document.querySelector("[data-logout]");
+  if (logoutBtn) logoutBtn.onclick = logout;
+
+  initThemeToggle();
+  
   try {
     IDX = buildIndex(await getSyllabus());
   } catch (e) {
-    view.innerHTML = `<div class="card">Could not load syllabus: ${esc(e.message)}</div>`;
+    view.innerHTML = `<div class="card error-shake">Could not load syllabus: ${esc(e.message)}</div>`;
     return;
   }
   marksReady = loadMarks();
   window.addEventListener("hashchange", route);
   view.addEventListener("click", onClick);
   route();
+}
+
+function initThemeToggle() {
+  const isDark = localStorage.getItem("theme") === "dark" || (!localStorage.getItem("theme") && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  if (isDark) document.documentElement.classList.add("dark");
+
+  $$(".theme-toggle-btn").forEach((btn) => {
+    btn.innerHTML = document.documentElement.classList.contains("dark") ? ICONS.sun : ICONS.moon;
+    btn.onclick = () => {
+      const darkActive = document.documentElement.classList.toggle("dark");
+      localStorage.setItem("theme", darkActive ? "dark" : "light");
+      $$(".theme-toggle-btn").forEach((b) => (b.innerHTML = darkActive ? ICONS.sun : ICONS.moon));
+    };
+  });
 }
 
 async function loadMarks() {
@@ -53,11 +97,20 @@ function route() {
   clearInterval(timer);
   const [, name = "home", arg] = location.hash.replace(/^#/, "").split("/");
   $$("#nav a").forEach((a) => a.classList.toggle("on", a.getAttribute("href") === "#/" + name));
+  
   const pages = {
     home: viewHome, custom: viewCustom, history: viewHistory,
     bookmarks: viewBookmarks, wrong: viewWrong, quiz: viewQuiz, result: viewResult,
   };
+  
+  triggerViewAnimation();
   (pages[name] || viewHome)(arg);
+}
+
+function triggerViewAnimation() {
+  view.classList.remove("view-enter");
+  void view.offsetWidth;
+  view.classList.add("view-enter");
 }
 
 function onClick(e) {
@@ -76,19 +129,30 @@ function viewHome() {
     view.innerHTML = `<div class="card center"><h2>No content yet</h2><p class="muted">The syllabus has not been added. Please check back soon.</p></div>`;
     return;
   }
+  
   view.innerHTML = `
-    <div class="card">
-      <h2>Browse &amp; practice</h2>
+    <!-- Wide Welcome Banner -->
+    <div class="welcome-banner">
+      <h1>Welcome back, ${esc(ctx.profile.name || "Student")}! 👋</h1>
+      <p>Select your board, class, and subject below to start an interactive practice session or challenge yourself.</p>
+    </div>
+
+    <div class="card interactive-board-card">
+      <div class="board-header">
+        <div class="board-icon-wrap">${ICONS.board}</div>
+        <h2>Browse &amp; Practice Board Syllabus</h2>
+      </div>
       <div class="grid4">
         <label>Board<select id="sBoard"></select></label>
         <label>Class<select id="sClass"></select></label>
         <label>Subject<select id="sSub"></select></label>
-        <label>Questions per session
+        <label>Questions / Session
           <select id="sCount">${[10, 20, 30, 50].map((n) => `<option ${n === (st.n || 20) ? "selected" : ""}>${n}</option>`).join("")}</select>
         </label>
       </div>
     </div>
     <div id="chapters"></div>`;
+    
   const sBoard = $("#sBoard"), sClass = $("#sClass"), sSub = $("#sSub");
   const fill = (sel, nodes, want) => {
     sel.innerHTML = nodes.map((n) => `<option value="${n.id}">${esc(n.name)}</option>`).join("");
@@ -114,29 +178,27 @@ function drawChapters(subjectId) {
   const chapters = kidsOf(subjectId);
   const box = $("#chapters");
   if (!chapters.length) {
-    box.innerHTML = `<div class="card center muted">No chapters here yet.</div>`;
+    box.innerHTML = `<div class="card center muted">No chapters available for this subject yet.</div>`;
     return;
   }
   box.innerHTML = chapters.map((c) => {
     const topics = kidsOf(c.id);
     const total = topics.reduce((s, t) => s + (t.qCount || 0), 0);
-    return `<details>
-      <summary>${esc(c.name)} <small>· ${topics.length} topics · ${total} Q</small></summary>
-      <div>
+    return `<details class="chapter-details">
+      <summary><span class="chapter-title">${esc(c.name)}</span> <small class="chapter-meta">${topics.length} topics · ${total} Qs</small></summary>
+      <div class="chapter-content">
         ${topics.map((t) => `<div class="trow">
-            <span>${esc(t.name)}</span><small>${t.qCount || 0} Q</small>
+            <span>${esc(t.name)}</span><small class="q-badge">${t.qCount || 0} Qs</small>
             <button class="btn sm" data-act="practice" data-id="${t.id}" data-name="${esc(t.name)}" ${t.qCount ? "" : "disabled"}>Practice</button>
-          </div>`).join("") || `<div class="muted" style="padding:8px">No topics yet.</div>`}
-        ${total ? `<div class="trow"><span><b>Whole chapter</b></span><small>${total} Q</small>
-          <button class="btn sm ghost" data-act="practice" data-id="${c.id}" data-name="${esc(c.name)}">Practice chapter</button></div>` : ""}
+          </div>`).join("") || `<div class="muted" style="padding:8px">No topics listed yet.</div>`}
+        ${total ? `<div class="trow chapter-practice-row"><span><b>Practice Whole Chapter</b></span><small>${total} Qs</small>
+          <button class="btn sm ghost" data-act="practice" data-id="${c.id}" data-name="${esc(c.name)}">Start Chapter</button></div>` : ""}
       </div>
     </details>`;
   }).join("");
 }
 
 /* ---------------- fetching questions ---------------- */
-// Random questions under any set of syllabus nodes using the `rand` field:
-// at most two cheap indexed queries, never a full collection scan.
 async function fetchRandom(nodeIds, n) {
   const ids = nodeIds.slice(0, 30);
   const base = [where("path", "array-contains-any", ids), where("status", "==", "active")];
@@ -157,18 +219,18 @@ async function fetchRandom(nodeIds, n) {
 }
 
 async function startSession({ mode, title, ids, n, minutes = 0 }) {
-  view.innerHTML = `<div class="card center">Preparing your questions…</div>`;
+  view.innerHTML = `<div class="card center">Preparing your interactive questions…</div>`;
   try {
     const qs = await fetchRandom(ids, n);
     if (!qs.length) {
-      toast("No questions available there yet.", "warn");
+      toast("No questions available for this selection yet.", "warn");
       route();
       return;
     }
     begin(mode, title, qs, minutes);
   } catch (e) {
     console.error(e);
-    toast(e.message.includes("index") ? "Firestore index missing – run: firebase deploy --only firestore:indexes" : e.message, "bad");
+    toast(e.message.includes("index") ? "Firestore index missing – please configure indexes." : e.message, "bad");
     route();
   }
 }
@@ -197,7 +259,7 @@ function tick() {
   paintTimer();
   if (leftSec() <= 0) {
     clearInterval(timer);
-    toast("Time is up – submitting your test.", "warn");
+    toast("Time is up – auto-submitting your test.", "warn");
     finish();
   }
 }
@@ -216,23 +278,23 @@ function renderQuiz() {
   const palette = practice ? "" : `<div class="card"><div class="palette">${s.qs.map((x, i) =>
     `<button data-act="goto" data-i="${i}" class="${s.answers[x.id] !== undefined ? "done" : ""} ${i === s.idx ? "cur" : ""}">${i + 1}</button>`).join("")}</div></div>`;
   view.innerHTML = `
-    <div class="card">
+    <div class="card quiz-card">
       <div class="qhead">
-        <span class="muted">${esc(s.title)} · ${s.idx + 1}/${s.qs.length}</span>
+        <span class="muted">${esc(s.title)} · Question ${s.idx + 1} of ${s.qs.length}</span>
         <span>${s.limitSec ? `⏱ <b id="timer"></b>` : ""}</span>
-        <button class="icon ${marks.bm.has(q.id) ? "on" : ""}" data-act="bm" title="Bookmark">★</button>
+        <button class="icon ${marks.bm.has(q.id) ? "on" : ""}" data-act="bm" title="Bookmark Question">★</button>
       </div>
       <div class="progress"><i style="width:${((s.idx + 1) / s.qs.length) * 100}%"></i></div>
       <h3 class="qtext">${esc(q.text)}</h3>
       <div class="opts">${opts}</div>
-      ${shown ? `<div class="expl ${ch === q.correct ? "ok" : "bad"}"><b>${ch === q.correct ? "Correct!" : "Incorrect."}</b> Answer: ${letters[q.correct]}.${q.explanation ? " " + esc(q.explanation) : ""}</div>` : ""}
-      <div class="row between">
+      ${shown ? `<div class="expl ${ch === q.correct ? "ok" : "bad"}"><b>${ch === q.correct ? "Correct!" : "Incorrect."}</b> Correct Answer: ${letters[q.correct]}.${q.explanation ? " " + esc(q.explanation) : ""}</div>` : ""}
+      <div class="row between" style="margin-top:20px;">
         ${practice
           ? `<button class="btn ghost" data-act="finish">End session</button>`
           : `<button class="btn ghost" data-act="prev" ${s.idx === 0 ? "disabled" : ""}>Previous</button>`}
         ${last
-          ? (practice ? `<button class="btn" data-act="finish">Finish</button>` : `<button class="btn" data-act="submit">Submit test</button>`)
-          : `<button class="btn" data-act="next">${practice && !shown ? "Skip" : "Next"}</button>`}
+          ? (practice ? `<button class="btn" data-act="finish">Finish Practice</button>` : `<button class="btn" data-act="submit">Submit Test</button>`)
+          : `<button class="btn" data-act="next">${practice && !shown ? "Skip" : "Next Question"}</button>`}
       </div>
     </div>${palette}`;
   paintTimer();
@@ -335,7 +397,7 @@ const actions = {
     const src = el.dataset.src === "bm" ? marks.bm : marks.wrong;
     const list = [...src].map(([id, x]) => ({ id, ...x }));
     if (!list.length) return;
-    begin("practice", el.dataset.src === "bm" ? "Bookmarked questions" : "Mistakes review", shuffle(list).slice(0, 30));
+    begin("practice", el.dataset.src === "bm" ? "Bookmarked Questions" : "Mistakes Review", shuffle(list).slice(0, 30));
   },
   removeMark(el) {
     const src = el.dataset.src === "bm" ? marks.bm : marks.wrong;
@@ -349,10 +411,10 @@ const actions = {
 /* ---------------- results / review ---------------- */
 async function viewResult(id) {
   if (lastResult && lastResult.id === id) { renderResult(lastResult); return; }
-  view.innerHTML = `<div class="card center">Loading result…</div>`;
+  view.innerHTML = `<div class="card center">Loading result summary…</div>`;
   try {
     const [a, d] = await Promise.all([getDoc(doc(db, "attempts", id)), getDoc(doc(db, "attemptDetails", id))]);
-    if (!a.exists() || !d.exists()) { view.innerHTML = `<div class="card">Result not found.</div>`; return; }
+    if (!a.exists() || !d.exists()) { view.innerHTML = `<div class="card">Result record not found.</div>`; return; }
     renderResult({ id, ...a.data(), qs: d.data().qs });
   } catch (e) {
     view.innerHTML = `<div class="card">Could not load result: ${esc(e.message)}</div>`;
@@ -362,13 +424,13 @@ async function viewResult(id) {
 function renderResult(r) {
   currentResult = r;
   view.innerHTML = `
-    <div class="card center">
+    <div class="card center result-summary-card">
       <h2>${esc(r.title)}</h2>
       <div class="score ${r.pct >= 50 ? "ok" : "bad"}">${r.pct}%</div>
-      <p>${r.correct} correct · ${r.wrong} wrong · ${r.skipped} skipped · ${fmtTime(r.durationSec)}</p>
-      <div class="row" style="justify-content:center">
-        <a class="btn" href="#/home">Practice more</a>
-        <a class="btn ghost" href="#/custom">New custom test</a>
+      <p class="muted">${r.correct} correct · ${r.wrong} wrong · ${r.skipped} skipped · Time taken: ${fmtTime(r.durationSec)}</p>
+      <div class="row" style="justify-content:center; margin-top: 16px;">
+        <a class="btn" href="#/home">Practice More</a>
+        <a class="btn ghost" href="#/custom">New Custom Test</a>
       </div>
     </div>
     <div class="tabs">
@@ -385,46 +447,46 @@ function drawReview(f) {
     f === "all" || (f === "wrong" && q.chosen >= 0 && q.chosen !== q.correct) || (f === "skipped" && q.chosen < 0));
   $("#rlist").innerHTML = list.map(({ q, i }) => `
     <div class="rq">
-      <div><b>${i + 1}.</b> ${esc(q.text)}</div>
+      <div><b>Q${i + 1}.</b> ${esc(q.text)}</div>
       <div class="opts" style="margin-top:8px">
         ${q.options.map((o, k) => `<div class="opt ${k === q.correct ? "correct" : k === q.chosen ? "wrong" : ""}"><b>${letters[k]}</b><span>${esc(o)}</span></div>`).join("")}
       </div>
       ${q.explanation ? `<div class="expl ${q.chosen === q.correct ? "ok" : "bad"}">${esc(q.explanation)}</div>` : ""}
-    </div>`).join("") || `<p class="muted center">Nothing here.</p>`;
+    </div>`).join("") || `<p class="muted center">No questions match this filter.</p>`;
 }
 
 /* ---------------- history ---------------- */
 async function viewHistory() {
-  view.innerHTML = `<div class="card center">Loading…</div>`;
+  view.innerHTML = `<div class="card center">Loading history…</div>`;
   try {
     const snapq = await getDocs(query(collection(db, "attempts"),
       where("uid", "==", ctx.user.uid), orderBy("createdAt", "desc"), limit(30)));
     const rows = snapq.docs.map((d) => ({ id: d.id, ...d.data() }));
-    view.innerHTML = `<div class="card"><h2>Your history</h2>
-      ${rows.length ? `<div class="tablewrap"><table><thead><tr><th>When</th><th>What</th><th>Score</th><th></th></tr></thead><tbody>
+    view.innerHTML = `<div class="card"><h2>Your Practice History</h2>
+      ${rows.length ? `<div class="tablewrap"><table><thead><tr><th>Date</th><th>Test Title</th><th>Score</th><th>Action</th></tr></thead><tbody>
         ${rows.map((r) => `<tr><td>${fmtDate(r.createdAt)}</td><td>${esc(r.title)} <span class="badge">${r.mode}</span></td>
-          <td><b>${r.pct}%</b> <small>${r.correct}/${r.total}</small></td>
+          <td><b>${r.pct}%</b> <small>(${r.correct}/${r.total})</small></td>
           <td><button class="btn sm ghost" data-act="openAttempt" data-id="${r.id}">Review</button></td></tr>`).join("")}
-      </tbody></table></div>` : `<p class="muted">No attempts yet. Go practice!</p>`}</div>`;
+      </tbody></table></div>` : `<p class="muted center">No previous attempts recorded yet. Start practicing!</p>`}</div>`;
   } catch (e) {
-    view.innerHTML = `<div class="card">${esc(e.message.includes("index") ? "Index is building or missing – run: firebase deploy --only firestore:indexes" : e.message)}</div>`;
+    view.innerHTML = `<div class="card">${esc(e.message.includes("index") ? "Firestore index building or missing – deploy indexes." : e.message)}</div>`;
   }
 }
 
 /* ---------------- bookmarks & mistakes ---------------- */
-async function viewBookmarks() { await marksReady; marksPage("bm", "Bookmarked questions", marks.bm); }
-async function viewWrong() { await marksReady; marksPage("wrong", "Mistakes to revise", marks.wrong); }
+async function viewBookmarks() { await marksReady; marksPage("bm", "Bookmarked Questions", marks.bm); }
+async function viewWrong() { await marksReady; marksPage("wrong", "Mistakes Revision Bank", marks.wrong); }
 
 function marksPage(src, title, map) {
   const list = [...map].map(([id, x]) => ({ id, ...x })).sort((a, b) => (b.at || 0) - (a.at || 0));
   view.innerHTML = `<div class="card"><div class="row between" style="margin-top:0"><h2 style="margin:0">${title} (${list.length})</h2>
-    ${list.length ? `<button class="btn" data-act="practiceMarks" data-src="${src}">Practice these</button>` : ""}</div>
+    ${list.length ? `<button class="btn" data-act="practiceMarks" data-src="${src}">Practice These</button>` : ""}</div>
     ${list.map((q) => `<div class="rq">
       <div>${esc(q.text)}</div>
-      <div class="muted" style="margin-top:4px">Answer: <b>${letters[q.correct]}. ${esc(q.options[q.correct])}</b></div>
-      ${q.explanation ? `<div class="muted">${esc(q.explanation)}</div>` : ""}
-      <button class="btn sm ghost" style="margin-top:6px" data-act="removeMark" data-src="${src}" data-id="${q.id}">Remove</button>
-    </div>`).join("") || `<p class="muted">Nothing here yet.</p>`}</div>`;
+      <div class="muted" style="margin-top:4px">Correct Answer: <b>${letters[q.correct]}. ${esc(q.options[q.correct])}</b></div>
+      ${q.explanation ? `<div class="muted" style="margin-top:4px">${esc(q.explanation)}</div>` : ""}
+      <button class="btn sm ghost" style="margin-top:8px" data-act="removeMark" data-src="${src}" data-id="${q.id}">Remove</button>
+    </div>`).join("") || `<p class="muted center" style="margin-top:20px;">Nothing saved here yet.</p>`}</div>`;
 }
 
 /* ---------------- custom test builder ---------------- */
@@ -432,25 +494,25 @@ function viewCustom() {
   const walk = (n) => {
     const ch = kidsOf(n.id);
     const pick = ["subject", "chapter", "topic"].includes(n.level);
-    const label = `${pick ? `<input type="checkbox" class="pick" value="${n.id}">` : ""}${esc(n.name)}${n.level === "topic" ? ` <small>${n.qCount || 0} Q</small>` : ""}`;
+    const label = `${pick ? `<input type="checkbox" class="pick" value="${n.id}">` : ""}${esc(n.name)}${n.level === "topic" ? ` <small class="q-badge">${n.qCount || 0} Qs</small>` : ""}`;
     return ch.length
-      ? `<details><summary>${label}</summary><div>${ch.map(walk).join("")}</div></details>`
-      : `<div class="leaf">${label}</div>`;
+      ? `<details class="chapter-details"><summary>${label}</summary><div class="chapter-content">${ch.map(walk).join("")}</div></details>`
+      : `<div class="leaf trow">${label}</div>`;
   };
   view.innerHTML = `
-    <div class="card"><h2>Build a custom test</h2>
-      <p class="muted">Tick any subjects, chapters or topics. Questions are picked at random from everything you select.</p>
-      <div>${kidsOf(null).map(walk).join("") || `<p class="muted">No content yet.</p>`}</div>
+    <div class="card"><h2>Build a Custom Test</h2>
+      <p class="muted">Check any subjects, chapters or specific topics below. Questions will be picked randomly from your selections.</p>
+      <div class="custom-tree-container" style="margin-top:16px;">${kidsOf(null).map(walk).join("") || `<p class="muted">No content available.</p>`}</div>
     </div>
     <div class="card">
       <div class="grid4">
-        <label>Number of questions<input type="number" id="cn" min="5" max="100" value="20"></label>
-        <label>Time limit (minutes, timed test)<input type="number" id="cm" min="1" max="300" value="20"></label>
+        <label>Number of Questions<input type="number" id="cn" min="5" max="100" value="20"></label>
+        <label>Time Limit (minutes, timed test)<input type="number" id="cm" min="1" max="300" value="20"></label>
       </div>
-      <div class="row" style="margin:14px 0">
-        <label style="display:flex;align-items:center"><input type="radio" name="mode" value="practice" checked> Practice (instant answers)</label>
-        <label style="display:flex;align-items:center"><input type="radio" name="mode" value="test"> Timed test (answers at the end)</label>
+      <div class="row" style="margin:16px 0">
+        <label style="display:flex;align-items:center;gap:8px;"><input type="radio" name="mode" value="practice" checked> Practice Mode (instant answers)</label>
+        <label style="display:flex;align-items:center;gap:8px;"><input type="radio" name="mode" value="test"> Timed Test Mode (reveals answers at end)</label>
       </div>
-      <button class="btn" data-act="startCustom">Start</button>
+      <button class="btn" data-act="startCustom">Start Custom Session</button>
     </div>`;
 }

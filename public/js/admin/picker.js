@@ -4,6 +4,12 @@
 // onSelect fires on EVERY change, with { nodeId, level, complete, node }.
 //   nodeId/level = deepest level currently selected (or null if nothing selected)
 //   complete = true when the deepest selected level equals stopAt
+//
+// showCounts (via pickerHTML): render "(N)" on leaf options.
+//   By default N comes from node.qCount.
+//   If you pass `countsById` to mountPicker, that overrides qCount with a
+//   caller-supplied Map/object of { nodeId: count } — use this to show live
+//   counts derived from the questions collection instead of a cached field.
 
 import { esc } from "../core/dom.js";
 import { kidsOf, getNode } from "../core/store.js";
@@ -67,19 +73,31 @@ const PICKER_STYLE = `
   </style>
 `;
 
-export function pickerHTML(stopAt = "topic") {
+export function pickerHTML(stopAt = "topic", { showCounts = false } = {}) {
   const levels = LEVELS.slice(0, LEVELS.indexOf(stopAt) + 1);
-  return `${PICKER_STYLE}<div class="pk-bar">${levels.map((l) => `
+  return `${PICKER_STYLE}<div class="pk-bar" data-pk-counts="${showCounts ? "1" : "0"}">${levels.map((l) => `
     <label class="pk-item">
       <span class="pk-lbl">${LEVEL_LABEL[l]}</span>
       <select class="pk-sel" data-pk="${l}"></select>
     </label>`).join("")}</div>`;
 }
 
-export function mountPicker(root, { stopAt = "topic", onSelect, persistKey = "lastPick" } = {}) {
+function countLookup(countsById, id) {
+  if (!countsById) return undefined;
+  if (countsById instanceof Map) return countsById.get(id);
+  return countsById[id];
+}
+
+export function mountPicker(
+  root,
+  { stopAt = "topic", onSelect, persistKey = "lastPick", countsById = null } = {}
+) {
   const levels = LEVELS.slice(0, LEVELS.indexOf(stopAt) + 1);
   const last = JSON.parse(localStorage.getItem(persistKey) || "{}");
   const sels = Object.fromEntries(levels.map((l) => [l, root.querySelector(`[data-pk="${l}"]`)]));
+
+  const bar = root.querySelector(".pk-bar");
+  const showCounts = bar?.dataset.pkCounts === "1";
 
   function currentSelection() {
     let nodeId = null, level = null;
@@ -100,17 +118,26 @@ export function mountPicker(root, { stopAt = "topic", onSelect, persistKey = "la
     });
   }
 
-  function cascade(from) {
+  // Expose cascade so callers can refresh counts without remounting.
+  function cascade(from = 0) {
     for (let i = from; i < levels.length; i++) {
       const l = levels[i];
       const parent = i === 0 ? null : (sels[levels[i - 1]].value || null);
       const nodes = i === 0 ? kidsOf(null) : (parent ? kidsOf(parent) : []);
+      const isLeaf = i === levels.length - 1;
 
       sels[l].disabled = i > 0 && !parent;
       sels[l].innerHTML = `<option value="">— ${LEVEL_LABEL[l]} —</option>` +
-        nodes.map((n) =>
-          `<option value="${n.id}">${esc(n.name)}${n.active === false ? " (hidden)" : ""}</option>`
-        ).join("");
+        nodes.map((n) => {
+          let countStr = "";
+          if (showCounts && isLeaf) {
+            const fromMap = countLookup(countsById, n.id);
+            const value = fromMap !== undefined ? fromMap : n.qCount;
+            if (Number.isFinite(value) && value > 0) countStr = ` (${value})`;
+          }
+          const hiddenStr = n.active === false ? " (hidden)" : "";
+          return `<option value="${n.id}">${esc(n.name)}${countStr}${hiddenStr}</option>`;
+        }).join("");
 
       if (last[l] && nodes.some((n) => n.id === last[l])) sels[l].value = last[l];
       else sels[l].value = "";
@@ -129,6 +156,14 @@ export function mountPicker(root, { stopAt = "topic", onSelect, persistKey = "la
 
   cascade(0);
 
-  return { sels, emit, getCurrent: currentSelection };
+  return {
+    sels,
+    emit,
+    cascade,                 // allows caller to refresh dropdowns with new counts
+    getCurrent: currentSelection,
+    updateCounts(next) {
+      countsById = next;
+      cascade(0);
+    },
+  };
 }
-
