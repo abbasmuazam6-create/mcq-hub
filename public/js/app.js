@@ -6,7 +6,7 @@ import {
   $, $$, esc, toast, shuffle, fmtTime, fmtDate,
   requireUser, getSyllabus, buildIndex, logout,
 } from "./common.js";
-
+import homeView from "./views/home.js";
 const view = $("#view");
 const letters = "ABCDE";
 let ctx, IDX;

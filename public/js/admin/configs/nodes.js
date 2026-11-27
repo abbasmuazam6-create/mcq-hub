@@ -9,6 +9,8 @@ import {
 import { esc, toast } from "../../core/dom.js";
 import { kidsOf, getNode, invalidateSyllabus, getSyllabus } from "../../core/store.js";
 import { bumpCacheVersion } from "../../core/cache.js";
+import { countHTML, peekCount } from "../../core/counts.js";
+import { openNodeDialog } from "../nodes/NodeEditDialog.js";
 
 const LEVELS = ["board", "class", "subject", "chapter", "topic"];
 const LABEL = { board: "Board", class: "Class", subject: "Subject", chapter: "Chapter", topic: "Topic" };
@@ -42,10 +44,33 @@ export function makeNodesConfig(level, { parentId = null } = {}) {
         key: "childCount", label: "Children",
         render: (r) => kidsOf(r.id).length,
       }] : []),
-      ...(level === "topic" ? [{ key: "qCount", label: "Questions", render: (r) => r.qCount || 0 }] : []),
+      // Real question count (filled in asynchronously by the Syllabus view; cached values render instantly)
+      { key: "qc", label: "Questions", sortable: false,
+        render: (r) => `<span data-qc="${esc(r.id)}">${countHTML(peekCount(r.id))}</span>` },
       { key: "order", label: "Order", sortable: true, render: (r) => r.order ?? 0 },
       { key: "active", label: "Status",
         render: (r) => `<span class="badge ${r.active === false ? "warn" : "ok"}">${r.active === false ? "hidden" : "visible"}</span>` },
+      // Per-row actions: edit, add child, delete
+      {
+        key: "_actions", label: "", sortable: false, searchable: false,
+        render: (r) => {
+          const canAddChild = LEVELS.indexOf(r.level) < LEVELS.length - 1;
+          return `
+            <span class="row-actions" style="display:inline-flex;gap:.25rem">
+              <button class="btn sm ghost" data-node-edit="${esc(r.id)}" title="Edit">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </button>
+              ${canAddChild ? `
+              <button class="btn sm ghost" data-node-add="${esc(r.id)}" title="Add child">
+                <i class="fa-solid fa-plus"></i>
+              </button>` : ""}
+              <button class="btn sm ghost" data-node-del="${esc(r.id)}" title="Delete">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </span>
+          `;
+        }
+      },
     ],
     bulkActions: [
       { id: "show", label: "Show", run: (ids) => setActive(ids, true) },
@@ -118,4 +143,31 @@ async function afterWrite() {
   await getSyllabus({ all: true, force: true });
   invalidateSyllabus();
   bumpCacheVersion();
+}
+
+// Wire per-row edit / add-child / delete buttons on the syllabus DataTable host.
+// Safe to call multiple times — the listener attaches once per host element.
+export function wireNodeRowActions(hostSelector = "#sylTable", onDone) {
+  const host = document.querySelector(hostSelector);
+  if (!host) return;
+  if (host._rowActionsWired) {
+    // Update the onDone callback to the latest one (reloads reference fresh state)
+    host._rowActionsOnDone = onDone;
+    return;
+  }
+  host._rowActionsWired = true;
+  host._rowActionsOnDone = onDone;
+  host.addEventListener("click", (e) => {
+    const editBtn = e.target.closest("[data-node-edit]");
+    const addBtn = e.target.closest("[data-node-add]");
+    const delBtn = e.target.closest("[data-node-del]");
+    const id = editBtn?.dataset.nodeEdit || addBtn?.dataset.nodeAdd || delBtn?.dataset.nodeDel;
+    if (!id) return;
+    const node = getNode(id);
+    if (!node) return;
+    const done = host._rowActionsOnDone;
+    if (editBtn) openNodeDialog({ mode: "edit", node, onDone: done });
+    else if (addBtn) openNodeDialog({ mode: "addChild", node, onDone: done });
+    else if (delBtn) openNodeDialog({ mode: "delete", node, onDone: done });
+  });
 }
